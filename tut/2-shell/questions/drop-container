@@ -1,0 +1,6 @@
+If we wraps the mutable reference in a container that implements Drop, the reference and
+its container will automatically be dropped when they go out of scope. This is essential when we 
+share many mutable references of the same values because when we only want to access one mutable 
+reference at a time. The container will make sure to lock our reference to protect the value 
+from being modified by different reference at the same time. If we share only &mut, we are violating
+Rust rule of having many mutable references at once.

@@ -1,0 +1,8 @@
+After handling the exception, we'd like to return to the source exception level, so we need to modify SP_ELs or 
+SP_EL0 depending on SPSR_ELx
+
+if SPSR_ELx[0] == 0
+    msr SP_EL0, B 
+
+if SPSR_ELx[0] == 1
+    msr SP_ELs, 0

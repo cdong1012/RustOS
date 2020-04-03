@@ -1,0 +1,3 @@
+The structopt use the parsers implemented in parsers.rs to check for the parsed input from 
+structopt. If the invalid values are given, the parser returns an Error containing a 
+message saying what went wrong.

@@ -1,0 +1,4 @@
+For round-robin scheduler with these 2 queues, I guess we can just use the ready queue for normal execution, but when a task that can be waited on occurs,
+we can then check the waiting queue and move that process to the front of the ready queue. With this, we don't need to keep checking all waiting processes unless
+we know something has changed.
+Also, if a task occurs, we can start the thread that is waiting immediately, increasing throughput and reducing latency for waiting processes.

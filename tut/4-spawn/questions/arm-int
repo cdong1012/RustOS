@@ -1,0 +1,2 @@
+For AArch64 with the source at a lower exception level(exception level 0), 
+a timer interrupt IRQ will use VBAR_ELx offset 0x480.

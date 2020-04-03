@@ -1,0 +1,3 @@
+I think libc chose these particular alignment to guarantees that it can support pointers 
+and data types that needs 16-byte alignment such as longs. It potentially reduces the time to 
+access pointers and data with this alignment.

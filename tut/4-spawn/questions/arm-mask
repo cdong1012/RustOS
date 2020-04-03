@@ -1,0 +1,6 @@
+Which values would you write to which register to unmask IRQ interrupts only?
+
+We should write to DAIFclr.
+With DAIFclr, I (bit 1) corresponds to IRQ mask bit. To unmask IRQ, we need to set this bit to 0 using DAIFclr
+msr DAIFclr, #1
+

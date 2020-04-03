@@ -1,0 +1,3 @@
+Process is a struct that contains the stack. When the process struct goes out of scope, drop is 
+envoked for process, which will also call drop for everything inside the struct, including stack. 
+When stack's drop function is called, this memory is freed

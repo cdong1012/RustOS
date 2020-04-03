@@ -1,0 +1,1 @@
+FAT32 can only store 32-bit file size, so the max size of a file would be 2^32 - 1 bytes = 4.29 gb - 1 bytes

@@ -1,0 +1,2 @@
+When all processes are waiting and wfe is executed, the processes are probably waiting for an interrupt request like FIQ or IRQ for some information or resources to 
+continue execute. If the interrupt does not arrive, then the process should not move on without finish waiting for this condition, so wfe waiting forever is correct.

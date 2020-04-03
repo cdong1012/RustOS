@@ -1,0 +1,4 @@
+If we had used the regular kind of linked list, we have to allocate space for a pointer pointing
+to the data beside the next/prev pointer we need. If that's the case, we have to find a way to 
+allocate the memory space the user needs to store the data, which is more work. Using an intrusive 
+linked list, the user can just store the data right inside the node.

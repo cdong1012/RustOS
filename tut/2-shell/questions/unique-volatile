@@ -1,0 +1,5 @@
+Volatile lets you read and modify a raw pointer. Unique<Volatile> also lets you do this, but 
+Unique is a wrapper type for volatile. Unique indicates that the posessor of this wrapper owns
+the reference to the raw pointer, making the referent to the raw pointer not modifiable without
+a unique path to the Unique reference. This makes it safe to share data of this pointer between 
+threads since there can only be one unique pointer to the value in memory.

@@ -1,0 +1,10 @@
+The backtrace would look something like this 
+bump::Allocator::alloc(self, layout)
+__rust_alloc(size, alignment)
+core::Vec::expand(self, new_size)
+core::Vec::push(self, i)
+
+i is u32. When v.push(i) is called, we need to allocate a block of 4 bytes to store i. 
+THis will lead to a call of the bump::Allocator::alloc() with the layout of layout.size() = 4 and 
+layout.allign() = 4 to allocate this block in memory. The vec needs to expand its internal storage to make space 
+for i.

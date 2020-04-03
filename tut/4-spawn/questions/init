@@ -1,0 +1,59 @@
+Since __start is already done for us, I won't go into it!
+
+zeros_bss() function:
+    - First, two mutable u64 are created. These 2 variables mark the starting point 
+        of the bss region
+    - Create a pointer called iter which is a mutable pointer pointing to the starting point of bss,
+        this is later used to iterate through the bss region to intitalize it
+    - Create a pointer called end which is a mutable pointer pointing to the end point of bss, 
+        this serves as the bound for the iteration we mentioned above 
+
+    - Iterate from iter to end, everytime we write zeroes(we got this from core::mem::zeroed) into 
+        the iter pointer pointing to a point in bss. Then we increment iter by 1 and do it again 
+            until we reach the end 
+
+switch_to_el2() function:
+    - First, we call current_el() to get the current exception level we are at. If it's 3
+        we need to go 1 layer down and switch it to 2
+    - To switch to 2, we need to set the secure configuration register of exception level 3 
+        which is SCR_EL3. This register specifies which exception to be routed to level3.
+        set the following bits
+            0: NS - Non-secure
+            4-5: RES1 - Reserved bits, should be set to 1
+            7: SMD - Secure Monitor Call disable, set to 1 to disable at EL1 and above
+            8: HCE - Hypervisor call enable
+            10: RW- Sets the lower levels to be AArch64.
+    - Then set up save program status register SPSR_EL3 by setting 
+        0: M[0] - Set SPSel to 1, so that SP is determined by the EL.
+        3: M[3] - set exception level to 0b10 or 2
+        6: F - FIQ mask bit.
+        7: I - IRQ mask bit.
+        8: A - SError interrupt mask bit.
+        9: D - Synchronize mask bit.
+    - Then set the address of switch_to_el2 to register ELR_EL3, making it the prefered return address. Upon
+        returning from EL3, the PC is set to this address. 
+    - Then we just eret from EL3!
+
+switch_to_el1() function:
+    - First, create a mutable u64 variable called vectors
+    - Check if the current EL is 2
+    - If current EL is 2 
+        - call the SP.get() to retrieve the stack pointer, and set the stack pointer for EL1 with the set function call 
+        - Next, read CNTHCTL_EL2(counter-timer hypervisor control register) and set the bits to trap non-secure EL0 and EL1 accesses to the physical timer and counter register to EL2.  
+        - Then, set the physical counter offset to 0.
+        - Set the RW bit for HCR_EL2 to enable AArch64 for EL1 to run in 64 bit mode 
+        - set bit 0 of CPTR_EL2 to disable trapping non-secure accesses to CPACR_EL1, 
+            trace registers, advanced floating-point functionality and SVE (scalable vector extension).
+        - Set bit 20-21 of CPACR_EL1 to disable trapping for SVE, SIMD, and floating-point execution.
+        - Set SCTLR_EL1(system control register) to SCTLR_EL1::RES1 which is 0x30d00800.
+            This disables most trapping behavior, sets the endianness to little endian, 
+            disable error synchronization barrier, disables memory caching for EL0 and EL1, 
+            disables the ability to change DAIF from EL0, and disables address translation and alignment checks.
+        - set SPSR_EL2(saved program status register) set all mask bits,
+            SPSel to make SP uses current EL, then set next EL to 2
+            0: M[0] - Set SPSel to 1, so that SP is determined by the EL.
+            3: M[2] - Set the exception level to 1.
+            6: F - FIQ mask bit.
+            7: I - IRQ mask bit.
+            8: A - SError interrupt mask bit.
+            9: D - Synchronize mask bit.

@@ -1,0 +1,2 @@
+Since the current exception level is at EL0 with AArch64, 
+a "svc" instruction results in a synchronous exception which will use VBAR_ELx offset 0x400.

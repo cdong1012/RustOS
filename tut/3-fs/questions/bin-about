@@ -1,0 +1,11 @@
+Your allocator probably creates more fragmentation that it needs to, 
+and that’s okay! How could you do better? Sketch (only in writing) 
+two brief design ideas for improving your allocator’s fragmentation.
+
+Since I'm rounding up a lot to make everything align, there's definitely internal fragmentation.
+So maybe if I make variable sized bins instead of having it rounded up to power of 2, that will
+reduce internal fragmentation using the best fit scheme. 
+However, that will make my solution of fixing external fragmentation more complicated because
+everything is not aligned to the power of 2 anymore.
+
+Another design is that 

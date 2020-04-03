@@ -1,0 +1,9 @@
+According to the programmer guide, the SPRSR.M field (bit 4) is used to record the execution state (0 indicates AArch64 and 1
+indicates AArch32).
+
+In this case, if we want to change the execution state to AArch32, we need to set this bit to 1 
+If we are running on exception level x, 
+
+mrs x0, SPSR_ELx
+orr x0, x0, #(1 << 4) # make sure bit 4 is always 1 when keeping everything else the same 
+msr SPSR_ELx, x0

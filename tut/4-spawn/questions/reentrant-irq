@@ -1,0 +1,4 @@
+For transient interrupts, data might be lost if the interupt is ignored(like UART)
+But if IRQs are not acknowledged before being unmasked, they'll immediately trigger again and 
+goes into a loop. We will need to store the data somewhere, acknowledge IRQ, unmask it, and process 
+the data.

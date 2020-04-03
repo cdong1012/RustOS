@@ -1,0 +1,9 @@
+1st: to share a stack, two processes have the same stack and they both can push and pop things 
+onto this same stack 
+
+2nd: let's say one process depends on the variables it pushed on the stack, while another pops it 
+for some reason. At that point, the stack is corrupted and the two process will likely fail
+
+3rd: We can implement a locked operation to increment the stack pointer when a process wants to 
+push to it and store the address of the previous stack pointer so that if needed, we can undo it 
+later and avoid corrupting our stack and its information.

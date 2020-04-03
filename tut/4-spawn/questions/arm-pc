@@ -1,0 +1,8 @@
+To set PC to address A using the ret instruction, we set register lr to A before calling ret. 
+    mov lr, A
+
+If we execute eret when the current exception level is ELx, the CPU will set PC to 
+the value in ELR_ELx. Therefore, we just need to set ELR_ELx to A before calling eret.
+
+    mov x0, A 
+    msr ELR_ELx, x0

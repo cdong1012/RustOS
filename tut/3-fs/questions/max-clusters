@@ -1,0 +1,6 @@
+The max number of clusters that a FAT32 file system can have is 2^28 clusters. Since every cluster has 1 associated FAT 
+entry in FAT to represent them, the number of clusters depends on how many bits we use to represent entries.
+Since only 28 bits are used to represent FAT entries, we can have 2^28 different entries, which means our file system can have 
+2^28 clusters.
+The limitation is the similar to FAT16, but unlike FAT32 where the upper 4 bits of the entries are ignored, FAT16 uses 
+the whole 16 bits to represent FAT entries. The number of clusters for FAT16 is limited to 2^16 as a result.

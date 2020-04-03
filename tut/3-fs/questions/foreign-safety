@@ -1,0 +1,3 @@
+When we use extern to use foreign code, Rust can only provide, for example, parameters to an external C function.
+The C function that will be called can have bugs that Rust can't check because the Rust compiler isn't designed to 
+check the syntax of and compile C code. The compiler can only statically check for Rust code for correctness and safety.

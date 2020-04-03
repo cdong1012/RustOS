@@ -1,0 +1,6 @@
+CBZ stands for compare and branch on zero, meaning that it will compare the value in a register to zero. If the value 
+is zero, branch to somewhere 
+
+cbz <register>, <label> 
+
+register is the register to compare to 0, label is the label to branch to if the condition is true

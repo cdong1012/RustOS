@@ -1,0 +1,5 @@
+The test.sh script uses the -r flag to make a call to io::copy to transmit packet, and 
+io::copy is can take data in any size for reader and writer. The test transmits 
+random base64 encoded strings between 1 and 512 bytes, and io::copy can handle this. However, 
+for xmodem protocol, we can only transmit an array of u8 which can only goes up to 256, so 
+base64 datas can't be properly transmitted this way

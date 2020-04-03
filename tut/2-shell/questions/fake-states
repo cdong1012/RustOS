@@ -1,0 +1,3 @@
+If we let the user choose the initial state for a GPIO structure, the user might skip 
+the START state and go right onto ALT, OUTPUT, or INPUT. Through this, the user might be able 
+to fake their GPIO's own state to access functions belonging to other states.

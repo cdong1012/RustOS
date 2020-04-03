@@ -1,0 +1,21 @@
+Which size classes did you choose and why?
+For my bins(list of linkedlist), for n in 0..32, bins[n] is responsible for the bins 
+with size 2^n. This is the easiest way to create this list because I'm hoping to make accessing 
+this list as quick as possible. If we wanna allocate a block of memory size M, then the index 
+would just be log2(M rounded up to the nearest power of 2 and align with layout.align())
+
+How does your allocator handle alignment?
+During allocation, I calculate the proper size needed to store the memory needed to be allocated.
+This is calculated by aligning up M rounded to the nearest power of 2 to find the right size. 
+Then we can index into the bins list to see if we have any block that have the right size and
+alignment to store. When I return the address in memory, I make sure to align it up one more time!
+
+What are the bounds on internal and external fragmentation for your design choices?
+During my allocation, I'm implementing a protocol similar to the Buddy Memory Allocation method,
+where I will index into the list to find a block with sufficient size. If the linkedlist at 
+that bin is empty, I move to the next bin(each time we move, the bin doubles in size). When we 
+find one that is not empty, we return that address. Before returning, I go back to all the bins
+that we skipped because the linkedlist was empty and there is no space to allocate. I push the later
+part of the address to those bins because I know the user will only use the size that they asked for.
+This will significantly reduces external fragmentation but won't get rid of it because of
+the rounding up alignment(internal frag = 2^n - size_requested for n as the index of the bin)

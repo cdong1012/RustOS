@@ -1,0 +1,3 @@
+Since KernPageTable and UserPageTable are Box structs containing a PageTable, we need to interact with entries inside the PageTable 
+itself. Deref and DerefMut gives us the ability to dereference the Box to acess the entries, and these smart pointer can be treated 
+like a regular reference. I guess they save us time typing self.0... every time we want to access/modify the pagetable

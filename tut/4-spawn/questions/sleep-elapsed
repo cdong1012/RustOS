@@ -1,0 +1,4 @@
+Sleep's return value will be different from the input value because this syscall depends on the timer interrupt to work. 
+If a process calls sleep right before a tick interval to switch to another process, the sleep time returned might be TICK ms + the input ms. 
+If sleep is called right after we switch after a TICK, then the return value might be the same as the input value.
+

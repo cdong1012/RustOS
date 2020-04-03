@@ -1,0 +1,5 @@
+Xmodem transmission is receiving input from our mini uart. Miniuart is constantly reading bytes through its
+io::read function, which internally calls wait_for_byte. This function waits depend on the timeout, and if the timeout 
+is not set for the transmission, this function can go into an infinite loop waiting until there is more byte to read.
+Also, a problem I ran into when I tested my code after removing the timeout was that it stalls 
+forever when xmodem was expecting to receive a specific byte because it keeps retrying that connection.

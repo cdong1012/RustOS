@@ -1,0 +1,11 @@
+Some processes will require significantly more stack space than 1MiB, 
+but our simple design allocates exactly 1MiB of stack space for all processes. 
+Assuming processes have access to dynamic memory allocation, 
+how could a process increase its stack size? Be specific about which instructions 
+the process would execute.
+
+We create a new stack, copy the existing stack into it, and then either remap virtual memory 
+or change SP to point to the new stack location.
+
+let offset = stack.top() - trap_frame.sp;
+trap_frame.sp = new_stack.top() - offset;

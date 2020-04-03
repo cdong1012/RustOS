@@ -1,0 +1,3 @@
+If we have the bytes of a directory entry, we can look at offset 11 from the begining to find out if it's a LFN 
+or regular directory entry. If the byte has the value of 0x0F, it's LFN, every other value means it's a regular directory 
+entry 

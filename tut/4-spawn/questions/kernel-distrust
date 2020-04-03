@@ -1,0 +1,3 @@
+The process does have to trust the kernel in translating its virtual address to physical address 
+on the kernel space in order to use kernel's resources. Also, it expects kernel to provide isolation 
+from other processes to avoid having other processes tamper with its memory resources.

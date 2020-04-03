@@ -1,0 +1,7 @@
+The bound for type T to outlive life time 'a 
+is required because our buffer has the life time of 'a.
+Since we are storing elements of type T in our buffer, those 
+element should exist as least as long as the buffer itself.
+If they don't and get freed before the life time 'a of the buffer,
+we can accidentally access those element in the buffer after they get freed.
+This can lead to a use-after-freed bug.

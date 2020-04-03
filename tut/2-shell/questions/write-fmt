@@ -1,0 +1,2 @@
+The type MiniUart will have its write_fmt method called since MiniUart implements 
+fmt::Write. fmt::Write provides the function write_fmt after we implement it in uart.rs.

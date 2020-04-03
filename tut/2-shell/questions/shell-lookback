@@ -1,0 +1,6 @@
+I use kprint in console to print the prefix out every line.
+I use StackVec to store bytes of the command typed from the shell cause 
+we can push and pop it easily(for adding and subtracting).
+I use console's write_byte and read_byte to read keyboard input and write 
+them out, which uses the uart's write_byte and read_byte.
+I use the command struct and its parse method to process the user's command (echo and exit)

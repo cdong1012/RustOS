@@ -1,0 +1,4 @@
+In C, the allocator has to record the size in the memory allocated block to use 
+when it frees it, so since Rust can eliminate recording the size in the block itself,
+Rust's allocation will be faster and cleaner. For the caller, Rust ensures the alignment is legit
+through its restriction, so all the work on the onus is done by the allocator, not the caller.

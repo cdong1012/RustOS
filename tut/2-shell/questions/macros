@@ -1,0 +1,2 @@
+They are used to implement the Readable, Writeable, and Readable_Writable traits for a specific 
+type we choose, letting us have access to or modify the raw pointer of that type.

@@ -1,0 +1,1 @@
+mrs x1, CurrentEL # read current exception level into x1 register

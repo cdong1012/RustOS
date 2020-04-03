@@ -1,0 +1,3 @@
+In our code, CLO and CHI registers's type is specifically made to be ReadVolatile, which only implements the
+Readable trait that contains the read_volatile function. There is absolutely no way for us to call write_volatile on 
+these registers because of that.

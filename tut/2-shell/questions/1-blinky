@@ -1,0 +1,2 @@
+We need to set and clear GPFSEL1, GPSET0 and GPCLR0.
+Physical pin 11 on the Pi maps to GPIO pin 27

@@ -1,0 +1,12 @@
+The tests index_oob, index_oob_after_truncate, indexing will fail to compile if 
+the Deref implementation does not exist. In these tests, the program is trying to
+index into StackVec by doing stack_vec[index], and this is not allowed since it can only 
+work for array, not a struct. By implementing deref, Rust implicitly converts our stackvec 
+struct into the slice of our backing array, making indexing possible.
+
+
+The test mut_indexing will fail if the DerefMut implementation does not exists similarly to 
+the tests for Deref implementation. To mutate element in the backing array in the stackvec struct,
+we need to create a smart pointers to those elements by dereferencing the struct into an array
+slice so we can index in.
+

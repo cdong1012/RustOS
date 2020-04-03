@@ -1,0 +1,1 @@
+since 0xFFFF is only 16 bits, we can retrieve it with either w30(least significant 16 bits of r30) or lr.

@@ -1,0 +1,3 @@
+For C++ and Rust, name mangling allows function overloading, and functions can have the same name and different parameters.
+If Rust didn't name mangle, when we try to use functions with the same name, the linker will be confused and don't know 
+how to correctly link these during compile time.

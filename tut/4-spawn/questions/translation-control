@@ -1,0 +1,6 @@
+For Level 2 index, we only need to choose from 2 possible value(index 0 or index 1 in l2 table).
+Therefore, technically we only need to allocate 1 bit for it.
+For TTBR select, this is based on the base address of the table.
+We configure the MMU in UserPageTable::alloc to recognize that for user virtual space allocation,
+if the virtual address is lower than the USER_IMG_BASE, we panic. 
+This way, we protect the kernel space by not having user allocations access the memory below this address split line.

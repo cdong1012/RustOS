@@ -1,0 +1,5 @@
+The ReadVolatile only implements the Readable trait, which only has a read function to read 
+from a raw pointer. Since it does not have any write function to call write_volatile, it's
+impossible to write with a ReadVolatile types. Similarly, the WriteVolatile type only implements 
+the Writable trait with a write function calling write_volatile. There is no way for this 
+type to call read_volatile to read the underlying pointer.

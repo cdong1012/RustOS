@@ -1,0 +1,2 @@
+The scheduler has no way to know why the exception handler is called for a process, so it can't assume that a process 
+will be in ready state until something happens(for example, I/O).

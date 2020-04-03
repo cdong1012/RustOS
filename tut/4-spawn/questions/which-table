@@ -1,0 +1,5 @@
+We are dedicating bits [63-42] of virtual address for TTBR select. If it's user, we use the base address of user pagetable 
+at TTBR1, and for kernel it's the base address at ttbr0. 
+The translation table pointed to by TTBR0 is selected when the upper bits of the
+virtual address (VA) are all set to 0. TTBR1 is selected when the upper bits of the VA are all set to 1. This is how 
+the MMU knows which table to use for a given address without needing to know specifically if the request is from kernel or user.

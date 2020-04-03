@@ -1,0 +1,2 @@
+To check if the first sector contains a valid MBR, we need to check the 2 valid bootsector bytes at offset 0x1FE and 0x1FF
+from the begining of the sector. If they are 0x55 and 0xAA consecutively, we know that is a valid MBR

@@ -1,0 +1,7 @@
+StackVec::push() method can potentially fail if the backing 
+array of StackVec is full and we try to push another element in it.
+Since StackVec depends on a statically allocated array whose 
+size is known at compile time, we can't resize StackVec to store 
+more elements. Vec is different because it allocates memory for 
+its element on the heap, and it's almost impossible for it to run 
+out of space when pushing.

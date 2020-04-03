@@ -1,0 +1,5 @@
+The benefit to expose safe interfaces to unsafe features is that we can prevent the end user 
+to directly perform unsafe operations. Through the safe interface as the middle man, we can 
+enforce safety features and boundaries before performing the unsafe operations, which makes our
+overall codes safe even when we call unsafe operations! We can yield the same benefits in C but C
+is unsafe overall and it's hard for us to actually cover all unsafe test cases while keeping the overhead low.

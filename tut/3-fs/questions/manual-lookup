@@ -1,0 +1,8 @@
+First we look into the EBPB to find the cluster number of the root directory(usually cluster 2).
+After we navigate to this, we will get to the regular directory entry of root. 
+Each entry is 32 bytes, so we can keep checking downward from the first entry. Checking at offset 0xb or 11 for a value 
+of 0x10 signifying that the entry correspond to a directory. Then We look at the name at offset 0 for the name "a". If 
+it matches, we found the a directory entry. We can go inside directory "a" by looking at the offset 0x1a or 26 to find the 
+entry cluster number. We repeat this until we get to "b" directory.
+After we get here, we can check the name("c") at offset 0 and the type ("txt") at offset 0x8 to look for file c.txt in 
+directory b

@@ -1,0 +1,8 @@
+For Vec<T>, it does not matter what T is because the elements in the Vec is allocated
+on the heap. Popping the Vec is simply removing the last element and return that from the heap.
+However, since we are implementing using a backing array, we want to make a separated clone of
+the element we are removing so we can return and use it. When we pop with StackVec, we don't
+technically remove it from the array, but we just change the size to make that last element
+invalid in the backing array. Since it's invalid, we don't want to return that array element
+to continue using it, and it's better to just make a clone. If that bound is removed, we might 
+accidentally use this invalid array element that should be invalid after we popped.
