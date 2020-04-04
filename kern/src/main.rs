@@ -18,8 +18,9 @@ pub mod console;
 pub mod fs;
 pub mod mutex;
 pub mod shell;
+pub mod elfparser;
 extern crate pi;
-//use core::ops::{DerefMut, Deref, Drop};
+use core::ops::{DerefMut, Deref, Drop};
 const GPIO_BASE: usize = 0x3F000000 + 0x200000;
 use alloc::string::String;
 use fat32::vfat::{File, VFat, VFatHandle};
@@ -84,6 +85,7 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
+use elfparser::ELFFile;
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -91,16 +93,22 @@ use alloc::vec::Vec;
 pub static SCHEDULER: GlobalScheduler = GlobalScheduler::uninitialized();
 pub static VMM: VMManager = VMManager::uninitialized();
 pub static IRQ: Irq = Irq::uninitialized();
-
+use shim::path::Path;
 fn kmain() -> ! {
     unsafe {
         ALLOCATOR.initialize();
         FILESYSTEM.initialize();
         IRQ.initialize();
         VMM.initialize();
-        SCHEDULER.initialize();
-        SCHEDULER.start()
+    //     SCHEDULER.initialize();
+    //     SCHEDULER.start()
     }
+    let mut elf = ELFFile::new();
+    let file_size = elf.read_file(Path::new("fib"));
+    kprintln!("file size is {}", file_size);
+    let raw = elf.as_slice();
+    kprintln!("{:?}", &raw[..64]);
+    loop {}
 }
 
 pub extern "C" fn process_0() {

@@ -88,7 +88,6 @@ impl Process {
         
         let mut working_dir = PathBuf::from("/");
         let mut page = process.vmap.alloc(VirtualAddr::from(USER_IMG_BASE as u64), PagePerm::RWX);
-        
         let mut dir = working_dir.clone();
         dir.push(pn);
         let entry = FILESYSTEM.open(dir.as_path());
@@ -98,10 +97,11 @@ impl Process {
         }
 
         let entry = entry.unwrap();
+        let mut buffer = [0u8; 80000]; // buffer of PAGE_SIZE bytes
+        let mut file_length : usize = 0usize;
         if let Some(mut file) = entry.into_file() {
             let mut start_index = 0;
             use shim::io::Read;
-            let mut buffer = [0u8; PAGE_SIZE]; // buffer of PAGE_SIZE bytes
             let length = match file.read(&mut buffer) {
                 Ok(length) => {
                     length
@@ -111,9 +111,15 @@ impl Process {
                     0usize
                 }
             };
-            page.copy_from_slice(&buffer);
+            page.copy_from_slice(&buffer[..PAGE_SIZE]);
+            kprintln!("done! Copied {}", length);
+            file_length = length;
         }
+
+        let mut page2 = process.vmap.alloc(VirtualAddr::from((USER_IMG_BASE + PAGE_SIZE) as u64), PagePerm::RWX);
+        page2.copy_from_slice(&buffer[PAGE_SIZE..file_length]);
         Ok(process)
+        
     }
 
     /// Returns the highest `VirtualAddr` that is supported by this system.

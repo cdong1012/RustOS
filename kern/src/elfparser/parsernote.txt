@@ -1,0 +1,34 @@
+1. Data section
+    - initialized variables, constant
+2. BSS section 
+    - uninitialized data 
+3. Text section
+    - executable
+
+view very first header: xxd -l 64 fib.elf
+view symbol table: readelf --symbols fib.elf
+view header: readelf -h fib.elf
+how to load programs into virtual memory: readelf -l fib.elf
+
+
+https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+
+ELF format: 
+- ELF header: defines stuff about the elf such as endianess, magic, class(64 or 32), entry point,...
+
+
+- program header table : array of structures describing how to map file into virtual address space for run-time execution 
+so that different parts of program can be loaded into different memory locations
+
+- .Text
+
+...
+
+- .Data 
+- section header table: array of structs containing metadata about a given section (for .rodata, .bss, .data, and .text)
+
+
+HOw to process 
+https://lwn.net/Articles/631631/
+
+- Parse the elf header and the program header table
