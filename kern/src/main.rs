@@ -85,7 +85,7 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
-use elfparser::{ELFFile, ELFHeader};
+use elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -103,11 +103,10 @@ fn kmain() -> ! {
     //     SCHEDULER.initialize();
     //     SCHEDULER.start()
     }
-    let mut elf = ELFFile::new();
-    let file_size = elf.read_file(Path::new("fib"));
-    kprintln!("file size is {}", file_size);
-    let elf_header = ELFHeader::from(&elf).unwrap();
-    elf_header.print_header();
+    // let mut elf = RawELFFile::new();
+    let mut elf = ELF::new();
+    elf.initialize(Path::new("fib"));
+    elf.print_elf();
     loop {}
 }
 

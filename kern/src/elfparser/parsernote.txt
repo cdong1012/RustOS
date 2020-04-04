@@ -9,7 +9,7 @@ view very first header: xxd -l 64 fib.elf
 view symbol table: readelf --symbols fib.elf
 view header: readelf -h fib.elf
 how to load programs into virtual memory: readelf -l fib.elf
-
+view prgoram headers: readelf -l fib.elf
 
 https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 

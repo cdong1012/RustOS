@@ -8,15 +8,16 @@ use fat32::traits::Entry;
 use crate::console::{kprintln, kprint};
 use core::ops::{Deref, DerefMut};
 use alloc::fmt;
-// ELFFile struct, contains a vector of raw u8s
-pub struct ELFFile {
+use core::mem::size_of;
+// RawELFFile struct, contains a vector of raw u8s
+pub struct RawELFFile {
     pub raw: Vec<u8>
 }
 
-impl ELFFile {
-    // ELFFile new function, initialize a new vector inside the struct and return it
-    pub fn new() -> ELFFile {
-        ELFFile {
+impl RawELFFile {
+    // RawELFFile new function, initialize a new vector inside the struct and return it
+    pub fn new() -> RawELFFile {
+        RawELFFile {
             raw: Vec::new()
         }
     }
@@ -63,7 +64,7 @@ impl ELFFile {
     }
 }
 
-impl Deref for ELFFile {
+impl Deref for RawELFFile {
     type Target = Vec<u8>;
 
     fn deref(&self) -> &Self::Target {
@@ -71,7 +72,7 @@ impl Deref for ELFFile {
     }
 }
 
-impl DerefMut for ELFFile {
+impl DerefMut for RawELFFile {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.raw
     }
@@ -111,7 +112,7 @@ impl ELFHeader {
     /*
     * From function converting the raw elf file into elf header
     */
-    pub fn from(elf: &ELFFile) -> Result<ELFHeader, Error> {
+    pub fn from(elf: &RawELFFile) -> Result<ELFHeader, Error> {
         let mut header = [0u8; 64];
         let raw = elf.as_slice();
         header.copy_from_slice(&raw[..64]);
@@ -343,3 +344,158 @@ impl ELFHeader {
     }
 }
 
+
+// This is program header for ELF32
+// probably not gonna be used for our OS, but oh well, wouldn't hurt to be able to read different kind of ELF files :D
+#[derive(Debug, Default)]
+pub struct ProgHeader32 {
+    pub ptype: u32,
+    pub p_offset: u32,
+    pub p_vaddr: u32,
+    pub p_paddr: u32,
+    pub p_filesz: u32,
+    pub p_memsz: u32,
+    pub p_flags: u32,
+    pub p_align: u32,
+}
+const_assert_size!(ProgHeader32, 32); // Program header of ELF32 is 32 bits
+
+// This is program header for ELF64
+// We'll be mainly using this.
+// Note: view p_flags here https://docs.oracle.com/cd/E19683-01/816-1386/6m7qcoblk/index.html#chapter6-tbl-39
+// Note: view p-types here https://static.docs.arm.com/ihi0056/b/IHI0056B_aaelf64.pdf
+#[derive(Debug, Default)]
+pub struct ProgHeader64 {
+    pub p_type: u32,
+    pub p_flags: u32,
+    pub p_offset: u64,
+    pub p_vaddr: u64,
+    pub p_paddr: u64,
+    pub p_filesz: u64,
+    pub p_memsz: u64,
+    pub p_align: u64,
+}
+const_assert_size!(ProgHeader64, 56); // Program header of ELF64 is 56 bits
+
+impl ProgHeader64 {
+    pub fn new() -> ProgHeader64 {
+        ProgHeader64::default()
+    }
+
+    // Parser Program header from ELF file. 
+    // Index is the header table index.
+    // #Panic
+    // panic if index >= RawELFFile.e_phnum
+    pub fn from(elf: &RawELFFile, index: usize) -> Result<ProgHeader64, Error> {
+        let elfheader = ELFHeader::from(elf).unwrap();
+
+        let start = elfheader.e_phoff as usize + index * size_of::<ProgHeader64>();
+        let raw = elf.as_slice();
+        let mut buffer = [0u8; size_of::<ProgHeader64>()];
+        buffer.copy_from_slice(&raw[start..(start + size_of::<ProgHeader64>())]);
+
+        // buffer now has the program header in it
+        // Parsing
+
+        let mut program_header = ProgHeader64::new();
+        let is_little = match elfheader.ei_data {
+            1 => true,
+            2 => false,
+            _ => {
+                panic!("EI_DATA not valid");
+            }
+        };
+
+        program_header.p_type = match is_little {
+            true => u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]),
+            false => u32::from_be_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]),
+        };
+
+        program_header.p_flags = match is_little {
+            true => u32::from_le_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
+            false => u32::from_be_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
+        };
+
+        program_header.p_offset = match is_little {
+            true => u64::from_le_bytes([buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]]),
+            false => u64::from_be_bytes([buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]])
+        };
+
+        program_header.p_vaddr = match is_little {
+            true => u64::from_le_bytes([buffer[16], buffer[17], buffer[18], buffer[19], buffer[20], buffer[21], buffer[22], buffer[23]]),
+            false => u64::from_be_bytes([buffer[16], buffer[17], buffer[18], buffer[19], buffer[20], buffer[21], buffer[22], buffer[23]])
+        };
+
+        program_header.p_paddr = match is_little {
+            true => u64::from_le_bytes([buffer[24], buffer[25], buffer[26], buffer[27], buffer[28], buffer[29], buffer[30], buffer[31]]),
+            false => u64::from_be_bytes([buffer[24], buffer[25], buffer[26], buffer[27], buffer[28], buffer[29], buffer[30], buffer[31]])
+        };
+
+        program_header.p_filesz = match is_little {
+            true => u64::from_le_bytes([buffer[32], buffer[33], buffer[34], buffer[35], buffer[36], buffer[37], buffer[38], buffer[39]]),
+            false => u64::from_be_bytes([buffer[32], buffer[33], buffer[34], buffer[35], buffer[36], buffer[37], buffer[38], buffer[39]])
+        };
+
+        program_header.p_memsz = match is_little {
+            true => u64::from_le_bytes([buffer[40], buffer[41], buffer[42], buffer[43], buffer[44], buffer[45], buffer[46], buffer[47]]),
+            false => u64::from_be_bytes([buffer[40], buffer[41], buffer[42], buffer[43], buffer[44], buffer[45], buffer[46], buffer[47]])
+        };
+
+        program_header.p_align = match is_little {
+            true => u64::from_le_bytes([buffer[47], buffer[48], buffer[49], buffer[50], buffer[52], buffer[53], buffer[54], buffer[55]]),
+            false => u64::from_be_bytes([buffer[47], buffer[48], buffer[49], buffer[50], buffer[52], buffer[53], buffer[54], buffer[55]])
+        };
+        Ok(program_header)
+    }
+
+    pub fn print_program_header(&self) {
+        kprintln!("Program Header:");
+        kprint!("   Type:                    ");
+        match self.p_type {
+            0x00000000 => {kprint!("NULL");},	
+            0x00000001 => {kprint!("LOAD");},	
+            0x00000002 => {kprint!("DYNAMIC");},	
+            0x00000003 => {kprint!("INTERP");},	
+            0x00000004 => {kprint!("NOTE");},	
+            0x00000005 => {kprint!("SHLIB");},
+            0x00000006 => {kprint!("PHDR");},	
+            0x00000007 => {kprint!("TLS");},	
+            0x60000000 => {kprint!("LOOS");},	
+            0x6FFFFFFF => {kprint!("HIOS");},
+            0x70000000 => {kprint!("LOPROC");},
+            0x7FFFFFFF => {kprint!("HIPROC");},
+            0x6474e551 => {kprint!("GNU_STACK");},
+            0x6474e550 => {kprint!("GNU_EH_FRAME");},
+            _          => {kprint!("Can't detect type");}
+        }
+        kprintln!("");
+
+        kprint!("   Flags:                   ");
+        match self.p_flags {
+            0 => {},
+            1 => {kprint!("  X");},
+            2 => {kprint!(" W");},
+            3 => {kprint!(" WX");},
+            4 => {kprint!("R");},
+            5 => {kprint!("R X");},
+            6 => {kprint!("RW");},
+            7 => {kprint!("RWX");},
+            _ => {kprint!("Can't detect flag");}
+        }
+        kprintln!("");
+
+        kprintln!("   Offset:                  0x{:x}", self.p_offset);
+        kprintln!("   Virtual address:         0x{:x}", self.p_vaddr);
+        kprintln!("   Physical address:        0x{:x}", self.p_paddr);
+        kprintln!("   File size:               0x{:x}", self.p_filesz);
+        kprintln!("   Memory size:             0x{:x}", self.p_memsz);
+        kprintln!("   Align:                   0x{:x}", self.p_align);
+    }
+}
+
+
+
+
+
+// TODO: Impl ProgHeader32
+// TODO: Section table?
