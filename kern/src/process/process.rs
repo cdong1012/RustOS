@@ -18,6 +18,8 @@ use crate::ALLOCATOR;
 use crate::allocator;
 use alloc::string::String;
 use core::ptr::Unique;
+use crate::elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF};
+
 /// Type alias for the type of a process ID.
 pub type Id = u64;
 
@@ -69,8 +71,8 @@ impl Process {
     pub fn load<P: AsRef<Path>>(pn: P) -> OsResult<Process> {
         use crate::VMM;
 
-        let mut p = Process::do_load(pn)?;
-
+        //let mut p = Process::do_load(pn)?;
+        let mut p = Process::load_elf(pn)?;
         p.context.sp = Process::get_stack_top().as_u64();
         p.context.elr = USER_IMG_BASE as u64;
         p.context.ttbr0 = VMM.get_baddr().as_u64();
@@ -115,11 +117,24 @@ impl Process {
             kprintln!("done! Copied {}", length);
             file_length = length;
         }
-
+        kprintln!("file length {} vs PAGESIZE: {}", file_length, PAGE_SIZE);
         let mut page2 = process.vmap.alloc(VirtualAddr::from((USER_IMG_BASE + PAGE_SIZE) as u64), PagePerm::RWX);
         page2.copy_from_slice(&buffer[PAGE_SIZE..file_length]);
+        Ok(process)  
+    }
+
+    // Load ELF, use this instead of do_load if we are working with elf files
+    pub fn load_elf<P: AsRef<Path>>(pn: P) -> OsResult<Process> {
+        let mut elf = ELF::new();
+        elf.initialize(pn);
+        let binary = elf.binary();
+        let b = &binary; // b: &Vec<u8>
+        let buffer: &[u8] = &b; // c: &[u8]
+        let mut process = Process::new().unwrap();
+        let user_stack = process.vmap.alloc(VirtualAddr::from(USER_STACK_BASE), PagePerm::RW);
+        let mut page = process.vmap.alloc(VirtualAddr::from(USER_IMG_BASE as u64), PagePerm::RWX);
+        page[..binary.capacity()].copy_from_slice(&buffer[..binary.capacity()]);
         Ok(process)
-        
     }
 
     /// Returns the highest `VirtualAddr` that is supported by this system.

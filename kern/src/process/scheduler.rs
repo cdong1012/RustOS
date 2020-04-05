@@ -114,17 +114,17 @@ impl GlobalScheduler {
     pub unsafe fn initialize(&self) {
         let scheduler : Scheduler = Scheduler::new();
         *self.0.lock() = Some(scheduler);
-        let p1 = Process::load(Path::new("fib")).unwrap();
-        // let p2 = Process::load(Path::new("fib")).unwrap();
-        // let p3 = Process::load(Path::new("fib")).unwrap();
-        // let p4 = Process::load(Path::new("fib")).unwrap();
-        // let p5 = Process::load(Path::new("fib")).unwrap();
-
-        // self.add(p1);
-        // self.add(p2);
-        // self.add(p3);
-        // self.add(p4);
-        // self.add(p5);
+        let p1 = Process::load(Path::new("sleep")).unwrap();
+        let p2 = Process::load(Path::new("sleep")).unwrap();
+        let p3 = Process::load(Path::new("sleep")).unwrap();
+        let p4 = Process::load(Path::new("sleep")).unwrap();
+        let p5 = Process::load(Path::new("sleep")).unwrap();
+        
+        self.add(p1);
+        self.add(p2);
+        self.add(p3);
+        self.add(p4);
+        self.add(p5);
     }
 
     // The following method may be useful for testing Phase 3:

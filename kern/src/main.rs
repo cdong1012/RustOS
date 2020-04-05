@@ -100,13 +100,9 @@ fn kmain() -> ! {
         FILESYSTEM.initialize();
         IRQ.initialize();
         VMM.initialize();
-    //     SCHEDULER.initialize();
-    //     SCHEDULER.start()
+        SCHEDULER.initialize();
+        SCHEDULER.start()
     }
-    // let mut elf = RawELFFile::new();
-    let mut elf = ELF::new();
-    elf.initialize(Path::new("fib"));
-    elf.print_elf();
     loop {}
 }
 

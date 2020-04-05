@@ -494,8 +494,5 @@ impl ProgHeader64 {
 }
 
 
-
-
-
 // TODO: Impl ProgHeader32
 // TODO: Section table?
