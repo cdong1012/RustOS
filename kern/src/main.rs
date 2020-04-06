@@ -103,6 +103,10 @@ fn kmain() -> ! {
         SCHEDULER.initialize();
         SCHEDULER.start()
     }
+    // let mut elf = ELF::new();
+    // elf.initialize(Path::new("fib"));
+    // elf.print_elf();
+    
     loop {}
 }
 

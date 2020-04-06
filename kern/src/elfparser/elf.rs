@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 use crate::elfparser::header::{ProgHeader64, ELFHeader, RawELFFile};
 use shim::path::{Path, PathBuf};
-use crate::console::{kprintln};
+use crate::console::{kprintln, kprint};
 // for ELF64
 pub struct ELF {
     pub raw: RawELFFile,
@@ -35,9 +35,17 @@ impl ELF {
     // Print the file header and then the program header table
     pub fn print_elf(&self) {
         self.header.print_header();
+        kprintln!("");
+        self.print_htable();
+    }
+
+    pub fn print_htable(&self) {
+        let mut num = 0;
         for entry in self.headerTable.iter() {
-            entry.print_program_header();
-        }
+            kprint!("{}.", num);
+            entry.print_header();
+            num += 1;
+        } 
     }
 
 
