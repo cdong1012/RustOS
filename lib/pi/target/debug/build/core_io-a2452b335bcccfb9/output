@@ -1,0 +1,4 @@
+cargo:rustc-cfg=pattern_guards
+cargo:rustc-cfg=non_exhaustive
+cargo:rustc-cfg=core_memchr
+cargo:rustc-cfg=no_collections

@@ -12,6 +12,7 @@ use crate::ALLOCATOR;
 use crate::FILESYSTEM;
 use core::fmt::Write;
 use core::str::FromStr;
+use crate::elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF, PeterRand};
 /// Error type for `Command` parse failures.
 #[derive(Debug)]
 enum Error {
@@ -123,6 +124,34 @@ pub fn shell(prefix: &str) {
                             let ms : u32 = u32::from_str(com.args[1]).unwrap();
                             
                             kernel_api::syscall::sleep(core::time::Duration::from_millis(ms as u64));
+                        
+                        } else if Command::path(&com) == "readelf" {
+                            
+                            if com.args.len() != 3 {
+                                kprintln!("Invalid number of argument");
+                                kprintln!("Usage: readelf <flag> <file_name>");
+                                break 'line;
+                            }
+                            let args = com.args;
+                            let mut dir = working_dir.clone();
+                            let entry = FILESYSTEM.open(dir.as_path());
+                            if entry.is_err() {
+                                kprintln!("Path not found");
+                                break 'line;
+                            }
+
+                            let mut elf = ELF::new();
+                            elf.initialize(Path::new("fib"));
+                            if args[1] == "-a" || args[1] == "--all" {
+                                elf.print_elf();
+                            } else if args[1] == "-h" || args[1] == "--file-header" {
+                                elf.header.print_header();
+                            } else if args[1] == "-l" || args[1] == "--program-header" {
+                                elf.print_htable();
+                            } else {
+                                kprintln!("The flag you submitted is not supported");
+                            }
+                            break 'line;
                         } else if Command::path(&com) == "pwd" {
                             if com.args.len() > 1 {
                                 kprintln!("Too many arguments");

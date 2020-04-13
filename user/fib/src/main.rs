@@ -3,7 +3,6 @@
 #![no_main]
 
 mod cr0;
-
 use kernel_api::println;
 use kernel_api::syscall::{getpid, time, exit};
 
@@ -20,9 +19,5 @@ fn main() {
     println!("Started...");
     let rtn = fib(40);
     println!("Ended: Result = {}", rtn);
-
-    // exit test
-    // println!("Starting process {}", getpid());
-    // exit();
-
 }
+

@@ -21,7 +21,7 @@ pub fn sys_sleep(ms: u32, tf: &mut TrapFrame) {
     let mut time_done = 0u128;
     let final_time = current_time().as_millis() + ms as u128;
     let boxed_fnmut = Box::new(move |process : &mut Process| -> bool { 
-        kprintln!("Progress for rocess: {}, current_time: {}. Final time: {}",process.context.tpidr, current_time().as_millis(), final_time);
+        kprintln!("Timer Progress for process: {}, current_time: {}. Final time: {}",process.context.tpidr, current_time().as_millis(), final_time);
         if current_time().as_millis() <= final_time {
             kprintln!("TIME IS NOT UP");
             false

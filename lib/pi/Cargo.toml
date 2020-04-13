@@ -13,3 +13,5 @@ edition = "2018"
 [dependencies]
 volatile = { path = "../volatile" }
 shim = { path = "../shim", features = ["no_std"] }
+rand_core = {version = "0.5.1" }
+rand = {version = "0.7.3", default-features = false }

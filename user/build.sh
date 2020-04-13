@@ -31,3 +31,5 @@ for d in ${PROGS[@]}; do
     #sudo cp $d/build/$d.bin $MNT/$d
     sudo cp $d/build/$d.elf $MNT/$d
 done
+# sudo cp fib/build/libpeter_lib.so $MNT/libpeter_lib.so 
+# sudo cp fib/build/main.elf $MNT/peter

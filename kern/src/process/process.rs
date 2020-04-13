@@ -74,7 +74,7 @@ impl Process {
         //let mut p = Process::do_load(pn)?;
         let mut p = Process::load_elf(pn)?;
         p.context.sp = Process::get_stack_top().as_u64();
-        p.context.elr = USER_IMG_BASE as u64;
+        p.context.elr = (USER_IMG_BASE) as u64;
         p.context.ttbr0 = VMM.get_baddr().as_u64();
         p.context.ttbr1 = p.vmap.get_baddr().as_u64();
         p.context.spsr = 0b1101000000;
@@ -127,12 +127,18 @@ impl Process {
     pub fn load_elf<P: AsRef<Path>>(pn: P) -> OsResult<Process> {
         let mut elf = ELF::new();
         elf.initialize(pn);
+        
+        // Extract binary code into a u8 array
         let binary = elf.binary();
         let b = &binary; // b: &Vec<u8>
         let buffer: &[u8] = &b; // c: &[u8]
+
+        // create process
         let mut process = Process::new().unwrap();
         let user_stack = process.vmap.alloc(VirtualAddr::from(USER_STACK_BASE), PagePerm::RW);
-        let mut page = process.vmap.alloc(VirtualAddr::from(USER_IMG_BASE as u64), PagePerm::RWX);
+
+        // allocate page and copy the executable binary into the page
+        let mut page = process.vmap.alloc(VirtualAddr::from((USER_IMG_BASE) as u64), PagePerm::RWX);
         page[..binary.capacity()].copy_from_slice(&buffer[..binary.capacity()]);
         Ok(process)
     }
@@ -161,7 +167,6 @@ impl Process {
         /// The default stack size is 1MiB = 1 << 20.
         use core::ops::Add;
         VirtualAddr::from(USER_STACK_BASE + (PAGE_SIZE - 16)) // align with this
-        
     }
 
     /// Returns `true` if this process is ready to be scheduled.

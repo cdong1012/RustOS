@@ -25,6 +25,7 @@ const GPIO_BASE: usize = 0x3F000000 + 0x200000;
 use alloc::string::String;
 use fat32::vfat::{File, VFat, VFatHandle};
 use aarch64::{current_el, brk, svc};
+use pi::rand::{RNG};
 const GPIO_FSEL1: *mut u32 = (GPIO_BASE + 0x04) as *mut u32;
 const GPIO_SET0: *mut u32 = (GPIO_BASE + 0x1C) as *mut u32;
 const GPIO_CLR0: *mut u32 = (GPIO_BASE + 0x28) as *mut u32;
@@ -85,7 +86,8 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
-use elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF};
+use rand_core::RngCore;
+use elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF, PeterRand};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -93,6 +95,7 @@ use alloc::vec::Vec;
 pub static SCHEDULER: GlobalScheduler = GlobalScheduler::uninitialized();
 pub static VMM: VMManager = VMManager::uninitialized();
 pub static IRQ: Irq = Irq::uninitialized();
+use pi::timer::current_time;
 use shim::path::Path;
 fn kmain() -> ! {
     unsafe {
@@ -100,30 +103,13 @@ fn kmain() -> ! {
         FILESYSTEM.initialize();
         IRQ.initialize();
         VMM.initialize();
-        SCHEDULER.initialize();
-        SCHEDULER.start()
+        shell(">");
     }
-    // let mut elf = ELF::new();
-    // elf.initialize(Path::new("fib"));
-    // elf.print_elf();
-    
     loop {}
 }
 
-pub extern "C" fn process_0() {
-    loop {
-        let ms = 20000;
-        let error: u64;
-        let elapsed_ms: u64;
-
-        unsafe {
-            asm!("mov x0, $2
-                  svc 1"
-                 : "=r"(elapsed_ms), "=r"(error)
-                 : "r"(ms)
-                 : "x0", "x7"
-                 : "volatile");
-        }
-        spin_sleep_ms(10000);
-    }
+fn demo_print_elf() {
+    let mut elf = ELF::new();
+    elf.initialize(Path::new("fib"));
+    elf.print_elf();
 }

@@ -9,7 +9,6 @@ use crate::param::{PAGE_MASK, PAGE_SIZE, TICK, USER_IMG_BASE};
 use crate::process::{Id, Process, State};
 use crate::traps::TrapFrame;
 use crate::VMM;
-use crate::{process_0};
 use crate::init::_start;
 use pi::timer::tick_in;
 use crate::traps::irq::{Irq, IrqHandler, IrqHandlers};
@@ -114,11 +113,11 @@ impl GlobalScheduler {
     pub unsafe fn initialize(&self) {
         let scheduler : Scheduler = Scheduler::new();
         *self.0.lock() = Some(scheduler);
-        let p1 = Process::load(Path::new("sleep")).unwrap();
-        let p2 = Process::load(Path::new("sleep")).unwrap();
-        let p3 = Process::load(Path::new("sleep")).unwrap();
-        let p4 = Process::load(Path::new("sleep")).unwrap();
-        let p5 = Process::load(Path::new("sleep")).unwrap();
+        let p1 = Process::load(Path::new("fib")).unwrap();
+        let p2 = Process::load(Path::new("fib")).unwrap();
+        let p3 = Process::load(Path::new("fib")).unwrap();
+        let p4 = Process::load(Path::new("fib")).unwrap();
+        let p5 = Process::load(Path::new("fib")).unwrap();
         
         self.add(p1);
         self.add(p2);

@@ -32,3 +32,21 @@ HOw to process
 https://lwn.net/Articles/631631/
 
 - Parse the elf header and the program header table
+- Done implementing readelf in shell 
+
+// Dynamic linking
+When dynamic linking is involved, things are more complicated: 
+1. the libraries must be mapped in memory
+2. the symbols must be resolved.
+
+1. The libraries must be able to be loaded anywhere in the process virtual address space and must be relocated. 
+The kernel does only map the program file in memory but the dynamic linker (a.k.a. the interpreter) as well which must:
+
+locate and map all dependencies (as well as shared object specified in LD_PRELOAD);
+
+relocate the files.
+
+
+
+// 
+
