@@ -87,7 +87,7 @@ use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
 use rand_core::RngCore;
-use elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF, PeterRand};
+use elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF, PeterRand,SectionTable};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -103,13 +103,18 @@ fn kmain() -> ! {
         FILESYSTEM.initialize();
         IRQ.initialize();
         VMM.initialize();
-        shell(">");
+        kprintln!("Yeet");
+        demo_print_elf()
+        // SCHEDULER.initialize();
+        // SCHEDULER.start();
     }
     loop {}
 }
 
 fn demo_print_elf() {
     let mut elf = ELF::new();
-    elf.initialize(Path::new("fib"));
-    elf.print_elf();
+    elf.initialize(Path::new("real"));
+    let sectionTable = SectionTable::from(&elf.raw).unwrap();
+    sectionTable.printSectionTable();
+    //elf.print_elf();
 }

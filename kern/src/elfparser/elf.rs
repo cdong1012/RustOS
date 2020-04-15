@@ -29,6 +29,7 @@ impl ELF {
             self.headerTable.push(program_header);
             index += 1;
         }
+        kprintln!("{}", self.raw.len());
     } 
 
     // Print this elf files

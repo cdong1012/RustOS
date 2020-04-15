@@ -262,6 +262,7 @@ impl KernPageTable {
 
             start_addr += PAGE_SIZE;
         }
+
         KernPageTable(kern_pt)
     }
 }

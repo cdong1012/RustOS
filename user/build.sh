@@ -33,3 +33,4 @@ for d in ${PROGS[@]}; do
 done
 # sudo cp fib/build/libpeter_lib.so $MNT/libpeter_lib.so 
 # sudo cp fib/build/main.elf $MNT/peter
+sudo cp fib/build/real $MNT/real

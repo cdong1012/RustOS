@@ -10,6 +10,8 @@ use core::ops::{Deref, DerefMut};
 use alloc::fmt;
 use core::mem::size_of;
 // RawELFFile struct, contains a vector of raw u8s
+
+#[derive(Debug, Default, Clone)]
 pub struct RawELFFile {
     pub raw: Vec<u8>
 }
@@ -37,9 +39,8 @@ impl RawELFFile {
             kprintln!("Can't open file at path: {:?}", dir.to_str());
             panic!("Can't open file");
         }
-
         let entry = entry.unwrap();
-        let mut buffer = [0u8; 80000];                              // change this to something huge
+        let mut buffer = [0u8; 2500000];                              // change this to something huge
         let mut file_length : usize = 0usize;
 
         if let Some(mut file) = entry.into_file() {                 
@@ -613,137 +614,3 @@ impl ProgHeader64 {
 
 
 // TODO: Section table?
-
-#[derive(Debug, Default)]
-pub struct SectionHeader64 {
-    pub sh_name: u32,
-    pub sh_type: u32,
-    pub sh_flag: u64,
-    pub sh_addr: u64,
-    pub sh_offset: u64,
-    pub sh_size: u64,
-    pub sh_link: u32,
-    pub sh_info: u32,
-    pub sh_addralign: u64,
-    pub sh_entsize: u64,
-}
-const_assert_size!(SectionHeader64, 64);
-
-
-impl SectionHeader64 {
-    pub fn new() -> SectionHeader64 {
-        SectionHeader64::default()
-    }
-
-    pub fn from(elf: &RawELFFile, index: usize) -> Result<SectionHeader64, Error> {
-        let elfheader = ELFHeader::from(elf).unwrap();
-
-        let start = elfheader.e_shoff as usize + index * size_of::<SectionHeader64>();
-        let raw = elf.as_slice();
-        let mut buffer = [0u8; size_of::<SectionHeader64>()];
-        buffer.copy_from_slice(&raw[start..(start + size_of::<SectionHeader64>())]);
-
-        // buffer now has the program header in it
-        // Parsing
-
-        let mut section_header = SectionHeader64::new();
-        let is_little = match elfheader.ei_data {
-            1 => true,
-            2 => false,
-            _ => {
-                panic!("EI_DATA not valid");
-            }
-        };
-
-        section_header.sh_name = match is_little {
-            true => u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]),
-            false => u32::from_be_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]),
-        };
-
-        section_header.sh_type = match is_little {
-            true => u32::from_le_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
-            false => u32::from_be_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
-        };
-
-        section_header.sh_flag = match is_little {
-            true => u64::from_le_bytes([buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]]),
-            false => u64::from_be_bytes([buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]]),
-        };
-
-        section_header.sh_addr = match is_little {
-            true => u64::from_le_bytes([buffer[16], buffer[17], buffer[18], buffer[19], buffer[20], buffer[21], buffer[22], buffer[23]]),
-            false => u64::from_be_bytes([buffer[16], buffer[17], buffer[18], buffer[19], buffer[20], buffer[21], buffer[22], buffer[23]]),
-        };
-
-        section_header.sh_offset = match is_little {
-            true => u64::from_le_bytes([buffer[24], buffer[25], buffer[26], buffer[27], buffer[28], buffer[29], buffer[30], buffer[31]]),
-            false => u64::from_be_bytes([buffer[24], buffer[25], buffer[26], buffer[27], buffer[28], buffer[29], buffer[30], buffer[31]]),
-        };
-
-        section_header.sh_size = match is_little {
-            true => u64::from_le_bytes([buffer[32], buffer[33], buffer[34], buffer[35], buffer[36], buffer[37], buffer[38], buffer[39]]),
-            false => u64::from_be_bytes([buffer[32], buffer[33], buffer[34], buffer[35], buffer[36], buffer[37], buffer[38], buffer[39]]),
-        };
-
-        section_header.sh_link = match is_little {
-            true => u32::from_le_bytes([buffer[40], buffer[41], buffer[42], buffer[43]]),
-            false => u32::from_be_bytes([buffer[40], buffer[41], buffer[42], buffer[43]]),
-        };
-
-        section_header.sh_info = match is_little {
-            true => u32::from_le_bytes([buffer[44], buffer[45], buffer[46], buffer[47]]),
-            false => u32::from_be_bytes([buffer[44], buffer[45], buffer[46], buffer[47]]),
-        };
-
-        section_header.sh_addralign = match is_little {
-            true => u64::from_le_bytes([buffer[48], buffer[49], buffer[50], buffer[51], buffer[52], buffer[53], buffer[54], buffer[55]]),
-            false => u64::from_be_bytes([buffer[48], buffer[49], buffer[50], buffer[51], buffer[52], buffer[53], buffer[54], buffer[55]]),
-        };
-
-        section_header.sh_entsize = match is_little {
-            true => u64::from_le_bytes([buffer[56], buffer[57], buffer[58], buffer[59], buffer[60], buffer[61], buffer[62], buffer[63]]),
-            false => u64::from_be_bytes([buffer[56], buffer[57], buffer[58], buffer[59], buffer[60], buffer[61], buffer[62], buffer[63]]),
-        };
-
-        Ok(section_header)
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut vec = Vec::with_capacity(64); // Section header is 64 bytes
-
-        for byte in self.sh_name.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-
-        for byte in self.sh_type.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-
-        for byte in self.sh_flag.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_addr.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_offset.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_size.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_link.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_info.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_addralign.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_entsize.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        vec
-    }
-}
-

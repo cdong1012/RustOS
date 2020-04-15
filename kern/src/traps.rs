@@ -58,8 +58,8 @@ pub extern "C" fn handle_exception(info: Info, esr: u32, tf: &mut TrapFrame) {
             },
             _ => {
                 kprintln!("info: {:?}", info);
-                kprintln!("syndrome: {:?}", syndrome);
                 kprintln!("Program counter: {:?}", VirtualAddr::from(tf.elr));
+                kprintln!("EXCEPTION ENCOUNTERED...SOMETHING WENT WRONG CAUSE U SUCK :D");
                 loop {} // use this when debugging            
             }
         }  
