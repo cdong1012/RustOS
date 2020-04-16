@@ -185,7 +185,6 @@ impl SectionTable {
             buffer.push((&self.elf)[offset].clone());
             offset += 1;
         }
-        kprintln!("{:?}", core::str::from_utf8(&buffer));
         let mut i = index as usize;
         let mut name = Vec::new();
         loop {

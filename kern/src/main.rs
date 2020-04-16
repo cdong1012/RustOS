@@ -115,8 +115,12 @@ fn demo_print_elf() {
     let mut elf = ELF::new();
     elf.initialize(Path::new("real"));
     let sectionTable = SectionTable::from(&elf.raw).unwrap();
-    //sectionTable.printSection(40);
+    // sectionTable.printSectionTable();
+    // sectionTable.printSection(40);
+    // sectionTable.printSection(41);
     //elf.print_elf();
     let symbolTable = SymbolTable::from(&sectionTable).unwrap();
-    symbolTable.printSymbol(1);
+    //symbolTable.getName(0);
+    //kprintln!("{:?}", core::str::from_utf8(&(symbolTable.getName(786))));
+    symbolTable.printSymbolTable();
 }
