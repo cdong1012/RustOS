@@ -2,11 +2,11 @@ use alloc::vec::Vec;
 use crate::elfparser::header::{ProgHeader64, ELFHeader, RawELFFile};
 use shim::path::{Path, PathBuf};
 use crate::console::{kprintln, kprint};
-// for ELF64
+// struct for ELF64
 pub struct ELF {
     pub raw: RawELFFile,
     pub header: ELFHeader,
-    pub headerTable: Vec<ProgHeader64>
+    pub header_table: Vec<ProgHeader64>
 }
 
 impl ELF {
@@ -14,11 +14,11 @@ impl ELF {
         ELF {
             raw: RawELFFile::new(),
             header: ELFHeader::new(),
-            headerTable: Vec::new(),
+            header_table: Vec::new(),
         }
     }
     
-    // Call new before initialize
+    // Caller ensures to call new before initialize
     pub fn initialize<P: AsRef<Path>>(&mut self, path: P) {
         self.raw.read_file(path);
         self.header = ELFHeader::from(&self.raw).unwrap();
@@ -26,7 +26,7 @@ impl ELF {
         let mut index = 0;
         while index < entry_num {
             let program_header = ProgHeader64::from(&self.raw, index as usize).unwrap();
-            self.headerTable.push(program_header);
+            self.header_table.push(program_header);
             index += 1;
         }
         kprintln!("{}", self.raw.len());
@@ -40,9 +40,10 @@ impl ELF {
         self.print_htable();
     }
 
+    // Print header table
     pub fn print_htable(&self) {
         let mut num = 0;
-        for entry in self.headerTable.iter() {
+        for entry in self.header_table.iter() {
             kprint!("{}.", num);
             entry.print_header();
             num += 1;
@@ -50,18 +51,18 @@ impl ELF {
     }
 
 
-    // Returns a vector of byte 
-    // vector length = binary length = headerTableEntry.p_filesz
+    // Returns a vector of byte containing the executable binary code
+    // vector length = binary length = header_table_entry.p_filesz
     pub fn binary(&self) -> Vec<u8> {
-        let mut headerTableEntry: &ProgHeader64 = &ProgHeader64::new();
-        for entry in self.headerTable.iter() {
+        let mut header_table_entry: &ProgHeader64 = &ProgHeader64::new();
+        for entry in self.header_table.iter() {
             if entry.p_type == 0x00000001 {
-                headerTableEntry = entry;
+                header_table_entry = entry;
                 break;
             }
         };
-        let binary_size = headerTableEntry.p_filesz as usize;
-        let start_offset = headerTableEntry.p_offset as usize;
+        let binary_size = header_table_entry.p_filesz as usize;
+        let start_offset = header_table_entry.p_offset as usize;
         let mut buffer = Vec::with_capacity(binary_size);
         let raw = &(self.raw.as_slice())[start_offset..(start_offset + binary_size)];
 

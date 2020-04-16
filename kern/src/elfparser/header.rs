@@ -9,8 +9,8 @@ use crate::console::{kprintln, kprint};
 use core::ops::{Deref, DerefMut};
 use alloc::fmt;
 use core::mem::size_of;
-// RawELFFile struct, contains a vector of raw u8s
 
+// RawELFFile struct, contains a vector of raw u8s
 #[derive(Debug, Default, Clone)]
 pub struct RawELFFile {
     pub raw: Vec<u8>
@@ -45,7 +45,7 @@ impl RawELFFile {
 
         if let Some(mut file) = entry.into_file() {                 
             use shim::io::Read;
-            let length = match file.read(&mut buffer) {             // read the file into the buffer
+            let length = match file.read(&mut buffer) {                 // read the file into the buffer
                 Ok(length) => {
                     length
                 },
@@ -60,14 +60,12 @@ impl RawELFFile {
         for byte in buffer[..file_length].iter() {                  // iterate through buffer, read it in vec
             self.raw.push(byte.clone());
         }
-
         file_length
     }
 }
 
 impl Deref for RawELFFile {
     type Target = Vec<u8>;
-
     fn deref(&self) -> &Self::Target {
         &self.raw
     }
@@ -79,7 +77,7 @@ impl DerefMut for RawELFFile {
     }
 }
 
-
+// ELF header(file header) struct, the first 64 bits of the elf file.
 #[derive(Debug, Default)]
 pub struct ELFHeader {
     pub ei_mag: [u8; 4],
@@ -111,7 +109,7 @@ impl ELFHeader {
     }
 
     /*
-    * From function converting the raw elf file into elf header
+    * From the raw elf file into elf header
     */
     pub fn from(elf: &RawELFFile) -> Result<ELFHeader, Error> {
         let mut header = [0u8; 64];
@@ -567,6 +565,8 @@ impl ProgHeader64 {
         Ok(program_header)
     }
 
+    // Print the program header
+    // Similar to readelf -l
     pub fn print_header(&self) {
         kprintln!("Program Header:");
         kprint!("   Type:                    ");
@@ -612,5 +612,3 @@ impl ProgHeader64 {
     }
 }
 
-
-// TODO: Section table?

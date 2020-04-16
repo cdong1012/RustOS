@@ -105,8 +105,8 @@ impl PageTable {
     /// Returns a new `Box` containing `PageTable`.
     /// Entries in L2PageTable should be initialized properly before return.
     fn new(perm: u64) -> Box<PageTable> {
-        let mut l2 : L2PageTable = L2PageTable::new();
-        let mut l3 = [L3PageTable::new(), L3PageTable::new()];
+        let l2 : L2PageTable = L2PageTable::new();
+        let l3 = [L3PageTable::new(), L3PageTable::new()];
         let mut pt = Box::new(PageTable {
             l2: l2,
             l3: l3,

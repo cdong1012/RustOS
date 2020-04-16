@@ -114,13 +114,13 @@ fn kmain() -> ! {
 fn demo_print_elf() {
     let mut elf = ELF::new();
     elf.initialize(Path::new("real"));
-    let sectionTable = SectionTable::from(&elf.raw).unwrap();
-    // sectionTable.printSectionTable();
+    let section_table = SectionTable::from(&elf.raw).unwrap();
+
     // sectionTable.printSection(40);
     // sectionTable.printSection(41);
     //elf.print_elf();
-    let symbolTable = SymbolTable::from(&sectionTable).unwrap();
+    let symbol_table = SymbolTable::from(&section_table).unwrap();
     //symbolTable.getName(0);
     //kprintln!("{:?}", core::str::from_utf8(&(symbolTable.getName(786))));
-    symbolTable.printSymbolTable();
+    symbol_table.print_symbol_table();
 }

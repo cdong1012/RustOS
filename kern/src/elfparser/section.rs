@@ -10,6 +10,8 @@ use core::ops::{Deref, DerefMut};
 use alloc::fmt;
 use core::mem::size_of;
 use crate::elfparser::header::{RawELFFile, ELFHeader};
+
+// Section entry struct. Entry is in the section table
 #[derive(Debug, Default, Clone)]
 pub struct SectionEntry64 {
     pub sh_name: u32,
@@ -23,7 +25,7 @@ pub struct SectionEntry64 {
     pub sh_addralign: u64,
     pub sh_entsize: u64,
 }
-const_assert_size!(SectionEntry64, 64);
+const_assert_size!(SectionEntry64, 64);     // section entry size is 64 bytes
 
 
 impl SectionEntry64 {
@@ -31,6 +33,8 @@ impl SectionEntry64 {
         SectionEntry64::default()
     }
 
+    // From the raw elf files into a section entry
+    // Index = index of section entry in the section table
     pub fn from(elf: &RawELFFile, index: usize) -> Result<SectionEntry64, Error> {
         let elfheader = ELFHeader::from(elf).unwrap();
 
@@ -102,50 +106,14 @@ impl SectionEntry64 {
 
         Ok(section_header)
     }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        let mut vec = Vec::with_capacity(64); // Section header is 64 bytes
-
-        for byte in self.sh_name.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-
-        for byte in self.sh_type.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-
-        for byte in self.sh_flags.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_addr.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_offset.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_size.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_link.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_info.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_addralign.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        for byte in self.sh_entsize.to_be_bytes().iter() {
-            vec.push(byte.clone());
-        }
-        vec
-    }
 }
 
+// Section table, stores a vector of section entry
+// Also store the string table and the raw elf file
 #[derive(Debug, Default, Clone)]
 pub struct SectionTable {
     pub sections: Vec<SectionEntry64>,
-    pub stringTable: SectionEntry64,
+    pub string_table: SectionEntry64,
     pub elf: RawELFFile
 }
 
@@ -154,8 +122,8 @@ impl SectionTable {
         SectionTable::default()
     }
 
+    // from raw elf file into section table
     pub fn from(elf: &RawELFFile) -> Result<SectionTable, Error> {
-
         let elfheader = ELFHeader::from(elf).unwrap();
         let string_table_index = elfheader.e_shstrndx;
         let section_entry_num = elfheader.e_shnum;
@@ -168,16 +136,19 @@ impl SectionTable {
         }
         Ok(SectionTable {
             sections: section_table,
-            stringTable: SectionEntry64::from(elf, string_table_index as usize).unwrap(),
+            string_table: SectionEntry64::from(elf, string_table_index as usize).unwrap(),
             elf: elf.clone()
         })
     }
 
-    pub fn getName(&self, index: u32) -> Vec<u8> {
-        let stringTable = &self.stringTable;
+    // Returns a vector of u8 as the name of the section entry 
+    // index = offset in the string table of this section table.
+    // note: to get the name of section entry "a", do: let name = self.get_name(a.sh_name);
+    pub fn get_name(&self, index: u32) -> Vec<u8> {
+        let string_table = &self.string_table;
     
-        let mut offset = stringTable.sh_offset as usize;
-        let size = stringTable.sh_size as usize;
+        let mut offset = string_table.sh_offset as usize;
+        let size = string_table.sh_size as usize;
         let mut buffer = Vec::new();
         let file_img = &self.elf;
         let end = offset + size;
@@ -198,9 +169,11 @@ impl SectionTable {
         name
     }
 
-    pub fn printSection(&self, index:usize) {
+    // Print a section entry out
+    // index = index in the section table
+    pub fn print_section(&self, index:usize) {
         let section = &self.sections[index];
-        let name = self.getName(section.sh_name);
+        let name = self.get_name(section.sh_name);
         kprintln!("    Name:                            {}", core::str::from_utf8(&name).unwrap());
         kprint!("    Type:                            ");
         match section.sh_type {
@@ -255,12 +228,12 @@ impl SectionTable {
         kprintln!("    Entry size:                      {}", section.sh_entsize);
     }
 
-    pub fn printSectionTable(&self) { // readelf -S 
+    pub fn print_section_table(&self) { // readelf -S 
         let length = (&self.sections).len();
         let mut i = 0;
         while i < length {
             kprintln!("Section {}.", i);
-            self.printSection(i);
+            self.print_section(i);
             i += 1;
         }
     }

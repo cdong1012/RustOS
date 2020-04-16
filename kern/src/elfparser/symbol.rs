@@ -1,5 +1,4 @@
-//https://docs.oracle.com/cd/E23824_01/html/819-0690/chapter6-79797.html
-
+//https://refspecs.linuxbase.org/elf/gabi4+/ch4.symtab.html
 use shim::const_assert_size;
 use core::fmt::Error;
 use alloc::vec::Vec;
@@ -14,6 +13,7 @@ use core::mem::size_of;
 use crate::elfparser::header::{RawELFFile, ELFHeader};
 use crate::elfparser::section::{SectionTable, SectionEntry64};
 
+// Symbol struct in symbol table
 #[derive(Debug, Default, Clone)]
 pub struct Symbol64 {
     pub st_name : u32,
@@ -24,13 +24,15 @@ pub struct Symbol64 {
     pub st_size : u64,
 }
 
-const_assert_size!(Symbol64, 24);
+const_assert_size!(Symbol64, 24); // symbol has the size of 24
 
 impl Symbol64 {
     pub fn new() -> Symbol64 {
         Symbol64::default()
     }
 
+    // FRom a raw symbol table into a symbol
+    // index = index of this symbol in the table
     pub fn from(raw_section_table: &Vec<u8>, index: usize) -> Symbol64 {
         let mut symbol = Vec::new();
 
@@ -40,10 +42,9 @@ impl Symbol64 {
             symbol.push((&raw_section_table)[start].clone());
             start += 1;
         }
-        //kprintln!("{:?}", symbol);
         let mut new_symbol = Symbol64::new();
         new_symbol.st_name = u32::from_le_bytes([symbol[0], symbol[1], symbol[2], symbol[3]]);
-        //kprintln!("name: {:x}", new_symbol.st_name);
+
         new_symbol.st_info = symbol[4];
 
         new_symbol.st_other = symbol[5];
@@ -55,24 +56,29 @@ impl Symbol64 {
         new_symbol.st_size = u64::from_le_bytes([symbol[16], symbol[17], symbol[18], symbol[19], symbol[20], symbol[21], symbol[22], symbol[23]]);
         new_symbol
     }
-    pub fn getBind(&self) -> u8 {
+
+    // Get the bind value from st_info
+    pub fn get_bind(&self) -> u8 {
         self.st_info >> 4
     }
-
-    pub fn getType(&self) -> u8 {
+    
+    // Get the type value from st_info
+    pub fn get_type(&self) -> u8 {
         self.st_info & 0xf
     }
 
-    pub fn getVis(&self) -> u8 {
+    // Get the vis value from st_info
+    pub fn get_vis(&self) -> u8 {
         self.st_other & 0x3
     }
 }
 
+// Symbol table, stores a vector of symbols, the section table, and its own symbol string table
 #[derive(Debug, Default)]
 pub struct SymbolTable {
     pub symbols: Vec<Symbol64>,
-    pub sectionTable: SectionTable,
-    pub symbolStringTable: Vec<u8>
+    pub section_table: SectionTable,
+    pub symbol_string_table: Vec<u8>
 }
 
 impl SymbolTable {
@@ -80,34 +86,25 @@ impl SymbolTable {
         SymbolTable::default()
     }
 
-    /**
-     * #[derive(Debug, Default)]
-        pub struct SectionTable {
-        pub sections: Vec<SectionEntry64>,
-        pub stringTable: SectionEntry64,
-        pub elf: RawELFFile
-     */
-    pub fn from(sectionTable: &SectionTable) -> Result<SymbolTable, Error> {
-        let mut symbolTable: &SectionEntry64 = &SectionEntry64::new();
+    // From section table into symbol table
+    pub fn from(section_table: &SectionTable) -> Result<SymbolTable, Error> {
+        let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
         let mut i = 0;
-        for section in (&sectionTable.sections).iter() {
+        for section in (&section_table.sections).iter() {
             if section.sh_type == 0x2 { // symbol table type == 0xB
-                symbolTable = section;
+                symbol_table = section;
                 break;
             }
             i += 1;
         }
-        // sectionTable.printSection(i);
-        let entry_num = (symbolTable.sh_size as usize)/(symbolTable.sh_entsize as usize);
-        let entry_size = symbolTable.sh_entsize as usize;
+        let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
+        let entry_size = symbol_table.sh_entsize as usize;
 
-        let raw = &sectionTable.elf;
+        let raw = &section_table.elf;
         let mut raw_section_table = Vec::new();
 
-        let mut index = symbolTable.sh_offset as usize;
-        kprintln!("Symbol table: {:x}", index);
-        let end = index + (symbolTable.sh_size as usize);
-        kprintln!("End: {:x}", end);
+        let mut index = symbol_table.sh_offset as usize;
+        let end = index + (symbol_table.sh_size as usize);
         while index < end {
             raw_section_table.push((&raw)[index].clone());
             index += 1;
@@ -119,51 +116,55 @@ impl SymbolTable {
             new_symbol_table.symbols.push(Symbol64::from(&raw_section_table, start));
             start += 1;
         }
-        new_symbol_table.sectionTable = sectionTable.clone();
-        let mut symbolStringTable = &SectionEntry64::new();
+        new_symbol_table.section_table = section_table.clone();
+        let mut symbol_string_table = &SectionEntry64::new();
 
-        for section in sectionTable.sections.iter() {
+        for section in section_table.sections.iter() {
             if section.sh_type == 0x3 {
-                let name = sectionTable.getName(section.sh_name);
+                let name = section_table.get_name(section.sh_name);
                 if (core::str::from_utf8(&name).unwrap() == ".strtab") {
-                    symbolStringTable = section;
+                    symbol_string_table = section;
                 }
             }
         }
 
-        let mut offset = symbolStringTable.sh_offset as usize;
+        let mut offset = symbol_string_table.sh_offset as usize;
         kprintln!("0x{:x}", offset);
-        let size = symbolStringTable.sh_size as usize;
+        let size = symbol_string_table.sh_size as usize;
         let mut buffer = Vec::new();
         let end = offset + size;
         while offset < end {
-            buffer.push((&sectionTable.elf)[offset].clone());
+            buffer.push((&section_table.elf)[offset].clone());
             offset += 1;
         }
 
-        new_symbol_table.symbolStringTable = buffer;
+        new_symbol_table.symbol_string_table = buffer;
         Ok(new_symbol_table)
     }
 
-    pub fn printSymbolTable(&self) {
+    // Print the entire symbol table, internally call print_symbol on all the symbols
+    // Similar to readelf -s
+    pub fn print_symbol_table(&self) {
         let mut i = 0;
         kprintln!("Symbol table '.symtab' contains {} entries:", self.symbols.len());
         while i < self.symbols.len() {
-            self.printSymbol(i);
+            self.print_symbol(i);
             i += 1;
         }
         
     }
 
-    pub fn printSymbol(&self, index: usize) {
+    // Print individual symbols
+    // Takes in the index of the symbol in the table
+    pub fn print_symbol(&self, index: usize) {
         let symbol = (&self.symbols)[index].clone();
 
-        let name = self.getName(symbol.st_name);
+        let name = self.get_name(symbol.st_name);
         let value = symbol.st_value;
         let size = symbol.st_size;
-        let symbol_type = symbol.getType();
-        let vis = symbol.getVis();
-        let bind = symbol.getBind();
+        let symbol_type = symbol.get_type();
+        let vis = symbol.get_vis();
+        let bind = symbol.get_bind();
         kprintln!(" {}:", index);
         kprintln!("   Value:    {:x}", value);
         kprintln!("   Size:     {}", size);
@@ -210,8 +211,9 @@ impl SymbolTable {
         kprintln!("   Name:     {:?}", core::str::from_utf8(&name).unwrap());
     }
 
-    pub fn getName(&self, index: u32) -> Vec<u8> {
-        let buffer = &self.symbolStringTable;
+    // Symbol table get_name, index is the offset in the string table of the symbol.
+    pub fn get_name(&self, index: u32) -> Vec<u8> {
+        let buffer = &self.symbol_string_table;
         let mut i = index as usize;
         let mut name = Vec::new();
         loop {
