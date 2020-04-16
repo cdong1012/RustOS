@@ -10,11 +10,11 @@ use core::ops::{Deref, DerefMut};
 use alloc::fmt;
 use core::mem::size_of;
 use crate::elfparser::header::{RawELFFile, ELFHeader};
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct SectionEntry64 {
     pub sh_name: u32,
     pub sh_type: u32,
-    pub sh_flag: u64,
+    pub sh_flags: u64,
     pub sh_addr: u64,
     pub sh_offset: u64,
     pub sh_size: u64,
@@ -60,7 +60,7 @@ impl SectionEntry64 {
             false => u32::from_be_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
         };
 
-        section_header.sh_flag = match is_little {
+        section_header.sh_flags = match is_little {
             true => u64::from_le_bytes([buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]]),
             false => u64::from_be_bytes([buffer[8], buffer[9], buffer[10], buffer[11], buffer[12], buffer[13], buffer[14], buffer[15]]),
         };
@@ -114,7 +114,7 @@ impl SectionEntry64 {
             vec.push(byte.clone());
         }
 
-        for byte in self.sh_flag.to_be_bytes().iter() {
+        for byte in self.sh_flags.to_be_bytes().iter() {
             vec.push(byte.clone());
         }
         for byte in self.sh_addr.to_be_bytes().iter() {
@@ -142,7 +142,7 @@ impl SectionEntry64 {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct SectionTable {
     pub sections: Vec<SectionEntry64>,
     pub stringTable: SectionEntry64,
@@ -175,7 +175,7 @@ impl SectionTable {
 
     pub fn getName(&self, index: u32) -> Vec<u8> {
         let stringTable = &self.stringTable;
-
+    
         let mut offset = stringTable.sh_offset as usize;
         let size = stringTable.sh_size as usize;
         let mut buffer = Vec::new();
@@ -185,6 +185,7 @@ impl SectionTable {
             buffer.push((&self.elf)[offset].clone());
             offset += 1;
         }
+        kprintln!("{:?}", core::str::from_utf8(&buffer));
         let mut i = index as usize;
         let mut name = Vec::new();
         loop {
@@ -201,37 +202,65 @@ impl SectionTable {
     pub fn printSection(&self, index:usize) {
         let section = &self.sections[index];
         let name = self.getName(section.sh_name);
-        kprintln!("Name:                            {:?}", core::str::from_utf8(&name).unwrap());
-        kprint!("Type:                              ");
+        kprintln!("    Name:                            {}", core::str::from_utf8(&name).unwrap());
+        kprint!("    Type:                            ");
         match section.sh_type {
-            0x0	=> {kprint!("SHT_NULL");},	
-            0x1	=> {kprint!("SHT_PROGBITS");},	
-            0x2	=> {kprint!("SHT_SYMTAB");},
-            0x3	=> {kprint!("SHT_STRTAB");},
-            0x4	=> {kprint!("SHT_RELA");},
-            0x5	=> {kprint!("SHT_HASH");},	
-            0x6	=> {kprint!("SHT_DYNAMIC");},	
-            0x7	=> {kprint!("SHT_NOTE");},	
-            0x8	=> {kprint!("SHT_NOBITS");},
-            0x9	=> {kprint!("SHT_REL");},	
-            0x0A =>	{kprint!("SHT_SHLIB");},	
-            0x0B =>	{kprint!("SHT_DYNSYM");},	
-            0x0E =>	{kprint!("SHT_INIT_ARRAY");},
-            0x0F =>	{kprint!("SHT_FINI_ARRAY");},
-            0x10 =>	{kprint!("SHT_PREINIT_ARRAY");},
-            0x11 =>	{kprint!("SHT_GROUP");},
-            0x12 =>	{kprint!("SHT_SYMTAB_SHNDX");},
-            0x13 =>	{kprint!("SHT_NUM");},
-            0x60000000	=> {kprint!("SHT_LOOS");},
+            0x0	=> {kprint!("NULL");},	
+            0x1	=> {kprint!("PROGBITS");},	
+            0x2	=> {kprint!("SYMTAB");},
+            0x3	=> {kprint!("STRTAB");},
+            0x4	=> {kprint!("RELA");},
+            0x5	=> {kprint!("HASH");},	
+            0x6	=> {kprint!("DYNAMIC");},	
+            0x7	=> {kprint!("NOTE");},	
+            0x8	=> {kprint!("NOBITS");},
+            0x9	=> {kprint!("REL");},	
+            0x0A =>	{kprint!("SHLIB");},	
+            0x0B =>	{kprint!("DYNSYM");},	
+            0x0E =>	{kprint!("INIT_ARRAY");},
+            0x0F =>	{kprint!("FINI_ARRAY");},
+            0x10 =>	{kprint!("PREINIT_ARRAY");},
+            0x11 =>	{kprint!("GROUP");},
+            0x12 =>	{kprint!("SYMTAB_SHNDX");},
+            0x13 =>	{kprint!("NUM");},
+            0x60000000	=> {kprint!("LOOS");},
             _ => {kprint!("Unknown");}	
         }
         kprintln!("");
+
+        kprint!("    Flag:                            ");
+        match section.sh_flags {
+            0x1	=> {kprint!("WRITE");},
+            0x2	=> {kprint!("ALLOC");},
+            0x4	=> {kprint!("EXECINSTR");},
+            0x10 =>	{kprint!("MERGE");},	
+            0x20 =>	{kprint!("STRINGS");},
+            0x40 =>	{kprint!("INFO_LINK");},
+            0x80 =>	{kprint!("LINK_ORDER");},
+            0x100 => {kprint!("OS_NONCONFORMING");},
+            0x200 => {kprint!("GROUP");},
+            0x400 => {kprint!("TLS");},
+            0x0ff00000	=> {kprint!("MASKOS");},
+            0xf0000000	=> {kprint!("MASKPROC");},
+            0x4000000	=> {kprint!("ORDERED");},
+            0x8000000	=> {kprint!("EXCLUDE");},
+            _     => {kprint!("Unknown");},	
+        }
+        kprintln!("");
+
+        kprintln!("    Address of section in memory:    0x{:x}", section.sh_addr);
+        kprintln!("    Offset of section in file image: 0x{:x}", section.sh_offset);
+        kprintln!("    Size of section:                 {}", section.sh_size);
+        kprintln!("    Index of associated section:     {}", section.sh_link);
+        kprintln!("    Alignment:                       0x{:x}", section.sh_addralign);
+        kprintln!("    Entry size:                      {}", section.sh_entsize);
     }
 
-    pub fn printSectionTable(&self) {
+    pub fn printSectionTable(&self) { // readelf -S 
         let length = (&self.sections).len();
         let mut i = 0;
         while i < length {
+            kprintln!("Section {}.", i);
             self.printSection(i);
             i += 1;
         }
