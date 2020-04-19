@@ -81,7 +81,7 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
-use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq};
+use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -109,10 +109,19 @@ fn demo_print_elf() {
     let section_table = SectionTable::from(&elf.raw).unwrap();
 
     let ver_req = GnuVersionReq::from(&section_table).unwrap();
-    for i in ver_req.verneeds.iter() {
-        kprintln!("i.file 0x{:x}", i.file);
-        kprintln!("{:?}", core::str::from_utf8(&ver_req.get_name(i.file)).unwrap());
-    }
+    ver_req.print_version_req();
+    // let ver_string = ver_req.get_version_string();
+    // for i in 0..ver_string.len() {
+    //     kprintln!("{:?}", core::str::from_utf8(&ver_string[i]).unwrap());
+    // }
+    
+    let gnu_ver = GnuVersion::from(&section_table).unwrap();
+    gnu_ver.print_gnu_version();
+
+    // for i in ver_req.verneeds.iter() {
+    //     kprintln!("i.file 0x{:x}", i.file);
+    //     kprintln!("{:?}", core::str::from_utf8(&ver_req.get_name(i.file)).unwrap());
+    // }
     //elf.print_elf();
     // let symbol_table = SymbolTable::from(&section_table).unwrap();
     // let dynamic_symbol_table = DynamicSymbolTable::from(&section_table).unwrap();

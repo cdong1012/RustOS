@@ -2,7 +2,7 @@
 use shim::const_assert_size;
 use core::fmt::Error;
 use alloc::vec::Vec;
-use crate::console::{kprintln};
+use crate::console::{kprintln, kprint};
 use crate::elfparser::section::{SectionTable, SectionEntry64};
 
 #[derive(Debug, Default, Clone)]
@@ -66,14 +66,11 @@ impl GnuVersionReq {
         }        
         let entry_num = (version_req.sh_size as usize)/(16usize);
         let _entry_size = version_req.sh_entsize as usize;
-        kprintln!("entry num = {}", entry_num);
         let raw = &section_table.elf;
         let mut raw_section_table = Vec::new();
 
         let mut index = version_req.sh_offset as usize;
-        kprintln!("Index = {:x}", index);
         let end = index + (version_req.sh_size as usize);
-        kprintln!("end = {:x}", end);
         while index < end {
             raw_section_table.push((&raw)[index].clone());
             index += 1;
@@ -82,11 +79,9 @@ impl GnuVersionReq {
 
         let mut start = 0usize;
         while start < entry_num {
-            kprintln!("start {} vs entry num {}", start, entry_num);
             new_version_req.verneeds.push(Verneed64::from(&raw_section_table, start));
             start += 1;
         }
-        kprintln!("Got here?");
         new_version_req.section_table = section_table.clone();
         let mut dynamic_string_table = &SectionEntry64::new();
 
@@ -98,10 +93,8 @@ impl GnuVersionReq {
                 }
             }
         }   
-        kprintln!("Done string");
 
         let mut offset = dynamic_string_table.sh_offset as usize;
-        kprintln!("0x{:x}", offset);
         let size = dynamic_string_table.sh_size as usize;
         let mut buffer = Vec::new();
         let end = offset + size;
@@ -127,5 +120,158 @@ impl GnuVersionReq {
             i += 1;
         }
         name
+    }
+
+    pub fn print_version_req(&self) {
+        let mut count = 0;
+        for ver_need in self.verneeds.iter() {
+            if ver_need.version == 1 {
+                count += 1;
+            }
+        }
+        kprintln!("Version needs section '.gnu.version_r' contains {} entries:", count);
+        let mut index = 0;
+        while index < self.verneeds.len() {
+            let ver_need = &self.verneeds[index];
+
+            kprintln!("     Version: {}. File {:?}. Cnt: {}", ver_need.version, core::str::from_utf8(&self.get_name(ver_need.file)).unwrap(), ver_need.cnt);
+            let end = index + ver_need.cnt as usize;
+            index += 1;
+            while index <= end {
+                let temp_ver_need = &self.verneeds[index];
+                kprint!("       Name:{:?}", core::str::from_utf8(&self.get_name(temp_ver_need.aux)).unwrap());
+                kprint!(" Version: {}", temp_ver_need.file >> 16);
+                kprintln!("");
+                index += 1;
+            }
+        }
+    }
+
+
+    pub fn get_version_string(&self) -> Vec<Vec<u8>> {
+        let mut result = Vec::new();
+
+        let mut index = 0;
+        while index < self.verneeds.len() {
+            let ver_need = &self.verneeds[index];
+            let end = index + ver_need.cnt as usize;
+            index += 1;
+            while index <= end {
+                let temp_ver_need = &self.verneeds[index];
+                result.push(self.get_name(temp_ver_need.aux).clone());
+                index += 1;
+            }
+        }
+        
+        result
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct Version64(u16);
+
+impl Version64 {
+    pub fn new() -> Version64 {
+        Version64::default()
+    }
+
+    pub fn from(raw_ver_table: &Vec<u8>, index: usize) -> Version64 {
+        let mut version = Vec::new();
+
+        let mut start = index * 2;
+        let end = start + 2;
+
+        while start < end {
+            version.push((&raw_ver_table)[start].clone());
+            start += 1;
+        }
+
+        let mut new_version = Version64::new();
+        new_version.0 = u16::from_le_bytes([version[0], version[1]]);
+
+        new_version
+    }
+
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct GnuVersion {
+    pub versions: Vec<Version64>,
+    pub gnu_version_req : GnuVersionReq
+}
+
+impl GnuVersion {
+    pub fn new() -> GnuVersion {
+        GnuVersion::default()
+    }
+
+    pub fn from(section_table: &SectionTable) -> Result<GnuVersion, Error> {
+
+        let mut gnu_version_table: &SectionEntry64 = &SectionEntry64::new();
+        //let mut version_req: &SectionEntry64 = &SectionEntry64::new();
+        let mut _i = 0;
+        for section in (&section_table.sections).iter() {
+            if section.sh_type == 0x6fffffff { // VERSYM type == 0x6fffffff
+                gnu_version_table = section;
+                break;
+            }
+            _i += 1;
+        }        
+
+        let entry_num = (gnu_version_table.sh_size as usize)/(2usize);
+        let _entry_size = gnu_version_table.sh_entsize as usize;
+        let raw = &section_table.elf;
+        let mut raw_section_table = Vec::new();
+
+        let mut index = gnu_version_table.sh_offset as usize;
+        let end = index + (gnu_version_table.sh_size as usize);
+        while index < end {
+            raw_section_table.push((&raw)[index].clone());
+            index += 1;
+        }
+        let mut new_gnu_version_table = GnuVersion::new();
+
+        let mut start = 0usize;
+        while start < entry_num {
+            new_gnu_version_table.versions.push(Version64::from(&raw_section_table, start));
+            start += 1;
+        }
+        let gnu_req = GnuVersionReq::from(&section_table).unwrap();
+        new_gnu_version_table.gnu_version_req = gnu_req.clone();
+        Ok(new_gnu_version_table)
+    }
+
+    pub fn print_gnu_version(&self) {
+        kprintln!("Version symbols section '.gnu.version' contains {} entries:", self.versions.len());
+        let mut index = 0;
+        while index < self.versions.len() {
+            let version = self.versions[index].0 as usize;
+
+            if self.versions[index].0 == 0 {
+                kprint!("   {}: (*local*)", self.versions[index].0);
+                for i in 0..21 - "(*local*)".len() {
+                    kprint!(" ");
+                }
+            } else {
+                kprint!("   {}: ", self.versions[index].0);
+                for version_req in self.gnu_version_req.verneeds.iter() {
+                    if version_req.version != 1 && version_req.file >> 16 == version as u32 {
+                        kprint!("({:?})",core::str::from_utf8(&self.gnu_version_req.get_name(version_req.aux)).unwrap());
+                        if self.versions[index].0 < 10 {
+                            kprint!(" ");
+                        }
+                        for i in 0..16-core::str::from_utf8(&self.gnu_version_req.get_name(version_req.aux)).unwrap().len() {
+                            kprint!(" ");
+                        }
+                        break;
+                    }
+                };
+            }
+            index += 1;
+            if index % 4 == 0 {
+                kprintln!("");
+            }
+        }
+        kprintln!("")
     }
 }
