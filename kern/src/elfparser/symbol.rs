@@ -4,6 +4,7 @@ use core::fmt::Error;
 use alloc::vec::Vec;
 use crate::console::{kprintln, kprint};
 use crate::elfparser::section::{SectionTable, SectionEntry64};
+use crate::elfparser::version::{GnuVersion};
 
 // Symbol struct in symbol table
 #[derive(Debug, Default, Clone)]
@@ -157,37 +158,35 @@ impl SymbolTable {
         let symbol_type = symbol.get_type();
         let vis = symbol.get_vis();
         let bind = symbol.get_bind();
-        kprintln!(" {}:", index);
-        kprintln!("   Value:    {:x}", value);
-        kprintln!("   Size:     {}", size);
+        kprint!(" {}:", index);
+        kprint!("   Value:    {:x}", value);
+        kprint!("   Size:     {}", size);
         kprint!("   Type:     ");
         match symbol_type {
-            0 => {kprint!("NOTYPE");},
-            1 => {kprint!("OBJECT");},
-            2 => {kprint!("FUNC");},
+            0 => {kprint!(" NOTYPE");},
+            1 => {kprint!(" OBJECT");},
+            2 => {kprint!("  FUNC");},
             3 => {kprint!("SECTION");},
-            4 => {kprint!("FILE");},
-            5 => {kprint!("COMMON");}, 
-            6 => {kprint!("TLS");},
-            10 => {kprint!("LOOS");}, 
-            12 => {kprint!("HIOS");},
-            13 => {kprint!("LOPROC");},
-            15 => {kprint!("HIPROC");},
+            4 => {kprint!("   FILE");},
+            5 => {kprint!(" COMMON");}, 
+            6 => {kprint!("    TLS");},
+            10 => {kprint!("   LOOS");}, 
+            12 => {kprint!("   HIOS");},
+            13 => {kprint!(" LOPROC");},
+            15 => {kprint!(" HIPROC");},
             _  => {kprint!("UNKNOWN")}
         }
-        kprintln!("");
         kprint!("   Bind:     ");
         match bind {
-            0 => {kprint!("LOCAL");},
-            1 => {kprint!("GLOBAL");},
-            2 => {kprint!("WEAK");},
-            10 => {kprint!("LOOS");},
-            12 => {kprint!("HIOS");},
-            13 => {kprint!("LOPROC");},
-            15 => {kprint!("HIPROC");},
+            0 => {kprint!("  LOCAL");},
+            1 => {kprint!(" GLOBAL");},
+            2 => {kprint!("   WEAK");},
+            10 => {kprint!("   LOOS");},
+            12 => {kprint!("   HIOS");},
+            13 => {kprint!(" LOPROC");},
+            15 => {kprint!(" HIPROC");},
             _ => {kprint!("UNKNOWN");},
         }
-        kprintln!("");
         kprint!("   Vis:      ");
         match vis {
             0 => {kprint!("DEFAULT");},
@@ -199,8 +198,11 @@ impl SymbolTable {
             6 => {kprint!("ELIMINATE");},
             _ => {kprint!("UNKNOWN");},
         }
-        kprintln!("");
-        kprintln!("   Name:     {:?}", core::str::from_utf8(&name).unwrap());
+        if name.len() > 25 {
+            kprintln!("   Name:     {}", core::str::from_utf8(&name[..25]).unwrap());
+        } else {
+            kprintln!("   Name:     {}", core::str::from_utf8(&name).unwrap());
+        }
     }
 
     // Symbol table get_name, index is the offset in the string table of the symbol.
@@ -288,8 +290,70 @@ impl DynamicSymbolTable {
     pub fn print_symbol(&self, index: usize) {
         let symbol = (&self.dynamic_symbols)[index].clone();
 
-        let name = self.get_name(symbol.st_name);
-        kprintln!("Name: {:?}", core::str::from_utf8(&name).unwrap());
+        let mut name = self.get_name(symbol.st_name);
+        let name_version = &self.get_name_version(index);
+        if name_version.len() > 0 {
+            for character in name_version.iter() {
+                name.push(character.clone());
+            }
+        }
+
+        let value = symbol.st_value;
+        let size = symbol.st_size;
+        let symbol_type = symbol.get_type();
+        let vis = symbol.get_vis();
+        let bind = symbol.get_bind();
+        kprint!(" {}:", index);
+        kprint!("   Value:    {:x}", value);
+        kprint!("   Size:     {}", size);
+        kprint!("   Type:     ");
+        match symbol_type {
+            0 => {kprint!(" NOTYPE");},
+            1 => {kprint!(" OBJECT");},
+            2 => {kprint!("  FUNC");},
+            3 => {kprint!("SECTION");},
+            4 => {kprint!("   FILE");},
+            5 => {kprint!(" COMMON");}, 
+            6 => {kprint!("    TLS");},
+            10 => {kprint!("   LOOS");}, 
+            12 => {kprint!("   HIOS");},
+            13 => {kprint!(" LOPROC");},
+            15 => {kprint!(" HIPROC");},
+            _  => {kprint!("UNKNOWN")}
+        }
+        kprint!("   Bind:     ");
+        match bind {
+            0 => {kprint!("  LOCAL");},
+            1 => {kprint!(" GLOBAL");},
+            2 => {kprint!("   WEAK");},
+            10 => {kprint!("   LOOS");},
+            12 => {kprint!("   HIOS");},
+            13 => {kprint!(" LOPROC");},
+            15 => {kprint!(" HIPROC");},
+            _ => {kprint!("UNKNOWN");},
+        }
+        kprint!("   Vis:      ");
+        match vis {
+            0 => {kprint!("DEFAULT");},
+            1 => {kprint!("INTERNAL");},
+            2 => {kprint!("HIDDEN");},
+            3 => {kprint!("PROTECTED");},
+            4 => {kprint!("EXPORTED");},
+            5 => {kprint!("SINGLETON");},
+            6 => {kprint!("ELIMINATE");},
+            _ => {kprint!("UNKNOWN");},
+        }
+        kprintln!("   Name:     {}", core::str::from_utf8(&name).unwrap());
+    }
+
+    pub fn print_dynamic_symbol_table(&self) {
+        let mut i = 0;
+        //kprintln!("Symbol table '.symtab' contains {} entries:", self.symbols.len());
+        while i < self.dynamic_symbols.len() {
+            self.print_symbol(i);
+            i += 1;
+        }
+        
     }
 
     pub fn get_name(&self, index: u32) -> Vec<u8> {
@@ -305,5 +369,11 @@ impl DynamicSymbolTable {
             i += 1;
         }
         name
+    }
+
+    pub fn get_name_version(&self, index: usize) -> Vec<u8> {
+        let gnu_version = GnuVersion::from(&self.section_table.clone()).unwrap();
+        let version_vec = gnu_version.get_gnu_version_string();
+        version_vec[index].clone()
     }
 }

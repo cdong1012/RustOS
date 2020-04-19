@@ -109,14 +109,16 @@ fn demo_print_elf() {
     let section_table = SectionTable::from(&elf.raw).unwrap();
 
     let ver_req = GnuVersionReq::from(&section_table).unwrap();
-    ver_req.print_version_req();
-    // let ver_string = ver_req.get_version_string();
-    // for i in 0..ver_string.len() {
-    //     kprintln!("{:?}", core::str::from_utf8(&ver_string[i]).unwrap());
-    // }
+    // ver_req.print_version_req();
     
     let gnu_ver = GnuVersion::from(&section_table).unwrap();
-    gnu_ver.print_gnu_version();
+
+    let dyn_sym = DynamicSymbolTable::from(&section_table).unwrap();
+    let sym = SymbolTable::from(&section_table).unwrap();
+
+    sym.print_symbol_table();
+    //dyn_sym.print_dynamic_symbol_table();
+    // gnu_ver.print_gnu_version();
 
     // for i in ver_req.verneeds.iter() {
     //     kprintln!("i.file 0x{:x}", i.file);

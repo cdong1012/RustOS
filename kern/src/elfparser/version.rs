@@ -274,4 +274,23 @@ impl GnuVersion {
         }
         kprintln!("")
     }
+
+    pub fn get_gnu_version_string(&self) -> Vec<Vec<u8>> {
+        let mut result = Vec::new();
+        let mut index = 0;
+        while index < self.versions.len() {
+            let version = self.versions[index].0 as usize;
+            if self.versions[index].0 == 0 {
+                result.push(Vec::new());
+            } else {
+                for version_req in self.gnu_version_req.verneeds.iter() {
+                    if version_req.version != 1 && version_req.file >> 16 == (version as u32) {
+                        result.push(self.gnu_version_req.get_name(version_req.aux).clone());
+                    }
+                }
+            }
+            index += 1;
+        }
+        result
+    }
 }
