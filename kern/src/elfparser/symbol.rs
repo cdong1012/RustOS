@@ -2,15 +2,7 @@
 use shim::const_assert_size;
 use core::fmt::Error;
 use alloc::vec::Vec;
-use shim::path::{Path, PathBuf};
-use crate::FILESYSTEM;
-use fat32::traits::FileSystem;
-use fat32::traits::Entry;
 use crate::console::{kprintln, kprint};
-use core::ops::{Deref, DerefMut};
-use alloc::fmt;
-use core::mem::size_of;
-use crate::elfparser::header::{RawELFFile, ELFHeader};
 use crate::elfparser::section::{SectionTable, SectionEntry64};
 
 // Symbol struct in symbol table
@@ -74,7 +66,7 @@ impl Symbol64 {
 }
 
 // Symbol table, stores a vector of symbols, the section table, and its own symbol string table
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct SymbolTable {
     pub symbols: Vec<Symbol64>,
     pub section_table: SectionTable,
@@ -89,16 +81,16 @@ impl SymbolTable {
     // From section table into symbol table
     pub fn from(section_table: &SectionTable) -> Result<SymbolTable, Error> {
         let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
-        let mut i = 0;
+        let mut _i = 0;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == 0x2 { // symbol table type == 0xB
+            if section.sh_type == 0x2 { // symbol table type == 0x2
                 symbol_table = section;
                 break;
             }
-            i += 1;
+            _i += 1;
         }
         let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
-        let entry_size = symbol_table.sh_entsize as usize;
+        let _entry_size = symbol_table.sh_entsize as usize;
 
         let raw = &section_table.elf;
         let mut raw_section_table = Vec::new();
@@ -122,7 +114,7 @@ impl SymbolTable {
         for section in section_table.sections.iter() {
             if section.sh_type == 0x3 {
                 let name = section_table.get_name(section.sh_name);
-                if (core::str::from_utf8(&name).unwrap() == ".strtab") {
+                if core::str::from_utf8(&name).unwrap() == ".strtab" {
                     symbol_string_table = section;
                 }
             }
@@ -212,6 +204,94 @@ impl SymbolTable {
     }
 
     // Symbol table get_name, index is the offset in the string table of the symbol.
+    pub fn get_name(&self, index: u32) -> Vec<u8> {
+        let buffer = &self.symbol_string_table;
+        let mut i = index as usize;
+        let mut name = Vec::new();
+        loop {
+            if (&buffer)[i].clone() != 0u8 {
+                name.push((&buffer)[i].clone());
+            } else {
+                break
+            }
+            i += 1;
+        }
+        name
+    }
+}
+
+// TODO: dynamic symbol table
+#[derive(Debug, Default, Clone)]
+pub struct DynamicSymbolTable {
+    pub dynamic_symbols: Vec<Symbol64>,
+    pub section_table: SectionTable,
+    pub symbol_string_table: Vec<u8>
+}
+
+impl DynamicSymbolTable {
+    pub fn new() -> DynamicSymbolTable {
+        DynamicSymbolTable::default()
+    }
+
+    pub fn from(section_table: &SectionTable) -> Result<DynamicSymbolTable, Error> {
+        let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
+        let mut _i = 0;
+        for section in (&section_table.sections).iter() {
+            if section.sh_type == 0xB { // dynamic symbol table type == 0xB
+                symbol_table = section;
+                break;
+            }
+            _i += 1;
+        }
+        let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
+        let _entry_size = symbol_table.sh_entsize as usize;
+
+        let raw = &section_table.elf;
+        let mut raw_section_table = Vec::new();
+
+        let mut index = symbol_table.sh_offset as usize;
+        let end = index + (symbol_table.sh_size as usize);
+        while index < end {
+            raw_section_table.push((&raw)[index].clone());
+            index += 1;
+        }
+        let mut new_symbol_table = DynamicSymbolTable::new();
+
+        let mut start = 0usize;
+        while start < entry_num {
+            new_symbol_table.dynamic_symbols.push(Symbol64::from(&raw_section_table, start));
+            start += 1;
+        }
+        new_symbol_table.section_table = section_table.clone();
+        let mut symbol_string_table = &SectionEntry64::new();
+
+        for section in section_table.sections.iter() {
+            if section.sh_type == 0x3 {
+                let name = section_table.get_name(section.sh_name);
+                if core::str::from_utf8(&name).unwrap() == ".dynstr" {
+                    symbol_string_table = section;
+                }
+            }
+        }
+        let mut offset = symbol_string_table.sh_offset as usize;
+        let size = symbol_string_table.sh_size as usize;
+        let mut buffer = Vec::new();
+        let end = offset + size;
+        while offset < end {
+            buffer.push((&section_table.elf)[offset].clone());
+            offset += 1;
+        }
+        new_symbol_table.symbol_string_table = buffer;
+        Ok(new_symbol_table)
+    }
+
+    pub fn print_symbol(&self, index: usize) {
+        let symbol = (&self.dynamic_symbols)[index].clone();
+
+        let name = self.get_name(symbol.st_name);
+        kprintln!("Name: {:?}", core::str::from_utf8(&name).unwrap());
+    }
+
     pub fn get_name(&self, index: u32) -> Vec<u8> {
         let buffer = &self.symbol_string_table;
         let mut i = index as usize;

@@ -5,7 +5,6 @@ use core::fmt::{self, Debug};
 use shim::io;
 use shim::path::Path;
 use fat32::vfat::{VFat, VFatHandle};
-use crate::console::{kprintln};
 
 use self::sd::Sd;
 use crate::mutex::Mutex;

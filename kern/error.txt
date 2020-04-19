@@ -1,0 +1,2 @@
++ Building build/kernel.elf [xbuild/build]
+Makefile:16: recipe for target 'build' failed

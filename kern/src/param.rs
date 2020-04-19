@@ -5,9 +5,6 @@ const_assert_size!(usize, 64 / 8);
 
 use core::time::Duration;
 pub use pi::common::*;
-use core::alloc::{GlobalAlloc, Layout};
-use crate::ALLOCATOR;
-use crate::allocator;
 pub const PAGE_ALIGN: usize = 16;
 pub const PAGE_SIZE: usize = 64 * 1024;
 pub const PAGE_MASK: usize = !(PAGE_SIZE - 1);

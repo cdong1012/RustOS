@@ -20,12 +20,7 @@ pub mod mutex;
 pub mod shell;
 pub mod elfparser;
 extern crate pi;
-use core::ops::{DerefMut, Deref, Drop};
 const GPIO_BASE: usize = 0x3F000000 + 0x200000;
-use alloc::string::String;
-use fat32::vfat::{File, VFat, VFatHandle};
-use aarch64::{current_el, brk, svc};
-use pi::rand::{RNG};
 const GPIO_FSEL1: *mut u32 = (GPIO_BASE + 0x04) as *mut u32;
 const GPIO_SET0: *mut u32 = (GPIO_BASE + 0x1C) as *mut u32;
 const GPIO_CLR0: *mut u32 = (GPIO_BASE + 0x28) as *mut u32;
@@ -40,7 +35,7 @@ pub mod traps;
 pub mod vm;
 
 use console::{kprintln};
-use crate::shell::shell;
+//use crate::shell::shell;
 
 fn gpio() -> ! {
     // blue 16
@@ -86,16 +81,13 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
-use rand_core::RngCore;
-use elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF, PeterRand, SectionTable, Symbol64, SymbolTable};
+use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
-use alloc::vec::Vec;
 pub static SCHEDULER: GlobalScheduler = GlobalScheduler::uninitialized();
 pub static VMM: VMManager = VMManager::uninitialized();
 pub static IRQ: Irq = Irq::uninitialized();
-use pi::timer::current_time;
 use shim::path::Path;
 fn kmain() -> ! {
     unsafe {
@@ -103,10 +95,10 @@ fn kmain() -> ! {
         FILESYSTEM.initialize();
         IRQ.initialize();
         VMM.initialize();
-        kprintln!("Yeet");
-        demo_print_elf()
+        demo_print_elf();
         // SCHEDULER.initialize();
         // SCHEDULER.start();
+        // remember to change header::read_file back
     }
     loop {}
 }
@@ -116,11 +108,14 @@ fn demo_print_elf() {
     elf.initialize(Path::new("real"));
     let section_table = SectionTable::from(&elf.raw).unwrap();
 
-    // sectionTable.printSection(40);
-    // sectionTable.printSection(41);
+    let ver_req = GnuVersionReq::from(&section_table).unwrap();
+    for i in ver_req.verneeds.iter() {
+        kprintln!("i.file 0x{:x}", i.file);
+        kprintln!("{:?}", core::str::from_utf8(&ver_req.get_name(i.file)).unwrap());
+    }
     //elf.print_elf();
-    let symbol_table = SymbolTable::from(&section_table).unwrap();
-    //symbolTable.getName(0);
-    //kprintln!("{:?}", core::str::from_utf8(&(symbolTable.getName(786))));
-    symbol_table.print_symbol_table();
+    // let symbol_table = SymbolTable::from(&section_table).unwrap();
+    // let dynamic_symbol_table = DynamicSymbolTable::from(&section_table).unwrap();
+    // dynamic_symbol_table.print_symbol(2);
+    // symbol_table.print_symbol_table();
 }

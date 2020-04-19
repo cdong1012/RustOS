@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use crate::elfparser::header::{ProgHeader64, ELFHeader, RawELFFile};
-use shim::path::{Path, PathBuf};
+use shim::path::{Path};
 use crate::console::{kprintln, kprint};
 // struct for ELF64
 pub struct ELF {
@@ -22,6 +22,7 @@ impl ELF {
     pub fn initialize<P: AsRef<Path>>(&mut self, path: P) {
         self.raw.read_file(path);
         self.header = ELFHeader::from(&self.raw).unwrap();
+        
         let entry_num = self.header.e_phnum;
         let mut index = 0;
         while index < entry_num {
@@ -29,7 +30,6 @@ impl ELF {
             self.header_table.push(program_header);
             index += 1;
         }
-        kprintln!("{}", self.raw.len());
     } 
 
     // Print this elf files

@@ -1,5 +1,3 @@
-use core::fmt;
-use shim::const_assert_size;
 #[repr(C)]
 #[derive(Default, Copy, Clone, Debug)]
 pub struct TrapFrame {

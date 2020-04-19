@@ -1,13 +1,7 @@
 use shim::const_assert_size;
 use core::fmt::Error;
 use alloc::vec::Vec;
-use shim::path::{Path, PathBuf};
-use crate::FILESYSTEM;
-use fat32::traits::FileSystem;
-use fat32::traits::Entry;
 use crate::console::{kprintln, kprint};
-use core::ops::{Deref, DerefMut};
-use alloc::fmt;
 use core::mem::size_of;
 use crate::elfparser::header::{RawELFFile, ELFHeader};
 
@@ -150,7 +144,6 @@ impl SectionTable {
         let mut offset = string_table.sh_offset as usize;
         let size = string_table.sh_size as usize;
         let mut buffer = Vec::new();
-        let file_img = &self.elf;
         let end = offset + size;
         while offset < end {
             buffer.push((&self.elf)[offset].clone());
@@ -196,6 +189,9 @@ impl SectionTable {
             0x12 =>	{kprint!("SYMTAB_SHNDX");},
             0x13 =>	{kprint!("NUM");},
             0x60000000	=> {kprint!("LOOS");},
+            0x6ffffffd => {kprint!("VERDEF");},
+            0x6ffffffe => {kprint!("VERNEED");},
+            0x6fffffff => {kprint!("VERSYM");},
             _ => {kprint!("Unknown");}	
         }
         kprintln!("");

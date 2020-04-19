@@ -2,7 +2,7 @@
 use shim::io;
 
 use fat32::traits::BlockDevice;
-use crate::console::{kprintln, kprint};
+use crate::console::{kprintln};
 extern "C" {
     /// A global representing the last SD controller error that occured.
     static sd_err: i64;

@@ -1,7 +1,4 @@
-use core::iter::Chain;
 use core::ops::{Deref, DerefMut};
-use core::slice::Iter;
-
 use alloc::boxed::Box;
 use alloc::fmt;
 use core::alloc::{GlobalAlloc, Layout};

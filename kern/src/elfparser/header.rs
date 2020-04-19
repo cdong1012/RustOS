@@ -7,7 +7,6 @@ use fat32::traits::FileSystem;
 use fat32::traits::Entry;
 use crate::console::{kprintln, kprint};
 use core::ops::{Deref, DerefMut};
-use alloc::fmt;
 use core::mem::size_of;
 
 // RawELFFile struct, contains a vector of raw u8s
@@ -40,7 +39,7 @@ impl RawELFFile {
             panic!("Can't open file");
         }
         let entry = entry.unwrap();
-        let mut buffer = [0u8; 2500000];                              // change this to something huge
+        let mut buffer = [0u8; 2500000usize];                              // change this to something huge
         let mut file_length : usize = 0usize;
 
         if let Some(mut file) = entry.into_file() {                 
@@ -56,7 +55,6 @@ impl RawELFFile {
             };
             file_length = length;
         }
-
         for byte in buffer[..file_length].iter() {                  // iterate through buffer, read it in vec
             self.raw.push(byte.clone());
         }

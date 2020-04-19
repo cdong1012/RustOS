@@ -1,5 +1,4 @@
 use aarch64::ESR_EL1;
-use crate::console::{kprintln};
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Fault {
     AddressSize,
@@ -16,7 +15,7 @@ impl From<u32> for Fault {
         let hsvc_imm = ESR_EL1::get_value(val as u64, ESR_EL1::ISS_HSVC_IMM);
         let ifsc = hsvc_imm & 0b111111; // bit 0 to 5
         let fault_type = ifsc >> 2; // upper 4 bits of ifsc
-        let level = (ifsc & 0b11) as u8; // lower 2 bits of ifsc
+        let _level = (ifsc & 0b11) as u8; // lower 2 bits of ifsc
         let fault = match fault_type {
             0b0000 => Fault::AddressSize,
             0b0001 => Fault::Translation,
@@ -56,9 +55,8 @@ pub enum Syndrome {
 /// Converts a raw syndrome value (ESR) into a `Syndrome` (ref: D1.10.4).
 impl From<u32> for Syndrome {
     fn from(esr: u32) -> Syndrome {
-        use self::Syndrome::*;
         let ec = ESR_EL1::get_value(esr as u64, ESR_EL1::EC);
-        let iss = ESR_EL1::get_value(esr as u64, ESR_EL1::ISS);
+        let _iss = ESR_EL1::get_value(esr as u64, ESR_EL1::ISS);
         let hsvc_imm = ESR_EL1::get_value(esr as u64, ESR_EL1::ISS_HSVC_IMM);
         let syndrome : Syndrome = match ec {
             0b000000 => Syndrome::Unknown,

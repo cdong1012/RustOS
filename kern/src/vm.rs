@@ -1,4 +1,3 @@
-use crate::console::kprintln;
 use crate::mutex::Mutex;
 
 use aarch64::*;

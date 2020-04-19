@@ -1,17 +1,12 @@
 use alloc::boxed::Box;
 use alloc::collections::vec_deque::VecDeque;
-use core::fmt;
 
-use aarch64::*;
-use crate::console::{kprintln, kprint};
+use crate::console::{kprintln};
 use crate::mutex::Mutex;
-use crate::param::{PAGE_MASK, PAGE_SIZE, TICK, USER_IMG_BASE};
+use crate::param::{PAGE_SIZE, TICK, USER_IMG_BASE};
 use crate::process::{Id, Process, State};
 use crate::traps::TrapFrame;
-use crate::VMM;
-use crate::init::_start;
 use pi::timer::tick_in;
-use crate::traps::irq::{Irq, IrqHandler, IrqHandlers};
 use pi::interrupt::{Interrupt};
 use crate::IRQ;
 use pi::interrupt::Controller;
@@ -233,7 +228,6 @@ impl Scheduler {
     // the current trapframe. After this, we can call context_restore to reload registers
     // back into the vector!
     fn switch_to(&mut self, tf: &mut TrapFrame) -> Option<Id> {
-        use crate::vm::*;
         if self.processes.is_empty() {
             return None;
         }

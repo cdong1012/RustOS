@@ -8,7 +8,6 @@ mod panic;
 
 use crate::kmain;
 use crate::param::*;
-use crate::console::{kprintln};
 global_asm!(include_str!("init/vectors.s"));
 
 //

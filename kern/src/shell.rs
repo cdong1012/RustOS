@@ -1,18 +1,13 @@
-use shim::io;
 use shim::path::{Path, PathBuf};
-
 use stack_vec::StackVec;
-
-use pi::atags::Atags;
 use alloc::string::String;
 use fat32::traits::FileSystem;
 use fat32::traits::{Dir, Entry, Timestamp, Metadata};
 use crate::console::{kprint, kprintln, CONSOLE};
-use crate::ALLOCATOR;
 use crate::FILESYSTEM;
 use core::fmt::Write;
 use core::str::FromStr;
-use crate::elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF, PeterRand};
+use crate::elfparser::{ELF};
 /// Error type for `Command` parse failures.
 #[derive(Debug)]
 enum Error {
@@ -133,7 +128,7 @@ pub fn shell(prefix: &str) {
                                 break 'line;
                             }
                             let args = com.args;
-                            let mut dir = working_dir.clone();
+                            let dir = working_dir.clone();
                             let entry = FILESYSTEM.open(dir.as_path());
                             if entry.is_err() {
                                 kprintln!("Path not found");
@@ -351,7 +346,7 @@ fn print_size(size : u32) {
     let max_length = 10;
     let space_length = max_length - length;
     kprint!("{}", size);
-    for time in 0..space_length {
+    for _time in 0..space_length {
         kprint!(" ");
     }
 }

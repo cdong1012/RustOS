@@ -1,14 +1,10 @@
 use alloc::boxed::Box;
-use core::time::Duration;
-
-use crate::console::CONSOLE;
 use crate::process::{State, Process};
 use crate::traps::TrapFrame;
 use crate::SCHEDULER;
 use kernel_api::*;
 use pi::timer::current_time;
 use crate::console::{kprintln, kprint};
-use crate::vm::{VirtualAddr, PagePerm};
 /// Sleep for `ms` milliseconds.
 ///
 /// This system call takes one parameter: the number of milliseconds to sleep.
@@ -85,7 +81,6 @@ pub fn sys_getpid(tf: &mut TrapFrame) {
 }
 
 pub fn handle_syscall(num: u16, tf: &mut TrapFrame) {
-    use crate::console::kprintln;
     if num == NR_SLEEP as u16 { // sleep 
         let ms = tf.x0 as u32; 
         sys_sleep(ms, tf);

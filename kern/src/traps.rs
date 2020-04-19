@@ -6,8 +6,8 @@ pub mod irq;
 use crate::shell::shell;
 pub use self::frame::TrapFrame;
 
-use pi::interrupt::{Controller, Interrupt};
-use crate::vm::{VirtualAddr, PagePerm};
+use pi::interrupt::{Interrupt};
+use crate::vm::{VirtualAddr};
 use self::syndrome::Syndrome;
 use self::syscall::handle_syscall;
 use crate::console::{kprintln};
@@ -44,7 +44,7 @@ pub struct Info {
 #[no_mangle]
 pub extern "C" fn handle_exception(info: Info, esr: u32, tf: &mut TrapFrame) {
     let syndrome = Syndrome::from(esr);
-    if (info.kind == Kind::Irq) {
+    if info.kind == Kind::Irq {
         IRQ.invoke(Interrupt::Timer1, tf);
     } else {
         match syndrome {

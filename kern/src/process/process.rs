@@ -1,24 +1,16 @@
 use alloc::boxed::Box;
-use shim::io;
 use shim::path::{Path, PathBuf};
-use shim::{const_assert_eq, const_assert_size};
 
-use aarch64;
 use crate::FILESYSTEM;
 use fat32::traits::FileSystem;
 use fat32::traits::Entry;
 use crate::param::*;
-use crate::process::{Stack, State};
+use crate::process::{State};
 use crate::traps::TrapFrame;
 use crate::vm::*;
-use kernel_api::{OsError, OsResult};
-use core::mem::replace;
+use kernel_api::{OsResult};
 use crate::console::{kprintln};
-use crate::ALLOCATOR;
-use crate::allocator;
-use alloc::string::String;
-use core::ptr::Unique;
-use crate::elfparser::{RawELFFile, ELFHeader, ProgHeader64, ELF};
+use crate::elfparser::{ELF};
 
 /// Type alias for the type of a process ID.
 pub type Id = u64;
@@ -164,8 +156,6 @@ impl Process {
     /// Returns the `VirtualAddr` represents the top of the user process's
     /// stack.
     pub fn get_stack_top() -> VirtualAddr {
-        /// The default stack size is 1MiB = 1 << 20.
-        use core::ops::Add;
         VirtualAddr::from(USER_STACK_BASE + (PAGE_SIZE - 16)) // align with this
     }
 
