@@ -4,6 +4,7 @@ mod random;
 mod section;
 mod symbol;
 mod version;
+mod relocation;
 pub use self::header::{ELFHeader, RawELFFile, ProgHeader64};
 pub use self::elf::{ELF};
 pub use self::random::PeterRand;
