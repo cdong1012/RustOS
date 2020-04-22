@@ -161,8 +161,24 @@ impl GnuVersionReq {
                 result.push(self.get_name(temp_ver_need.aux).clone());
                 index += 1;
             }
-        }
-        
+        } 
+        result
+    }
+
+    pub fn get_dependency_string(&self) -> Vec<Vec<u8>> {
+        let mut result = Vec::new();
+
+        let mut index = 0;
+        while index < self.verneeds.len() {
+            let ver_need = &self.verneeds[index];
+            let end = index + ver_need.cnt as usize;
+            result.push(self.get_name(ver_need.file).clone());
+            index += 1;
+            while index <= end {
+                let temp_ver_need = &self.verneeds[index];
+                index += 1;
+            }
+        } 
         result
     }
 }

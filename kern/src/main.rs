@@ -81,7 +81,7 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
-use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion, RelaTable, RelaPLT};
+use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion, RelaTable, RelaPLT, DynamicTable};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -109,12 +109,18 @@ fn demo_print_elf() {
     // elf.print_elf();
 
     let section_table = SectionTable::from(&elf.raw).unwrap();
+    let dyn_table = DynamicTable::from(&section_table).unwrap();
+    dyn_table.print_dyn_table();
     // section_table.print_section_table();
-    let rela_table = RelaTable::from(&section_table).unwrap();
-    let rela_plt = RelaPLT::from(&section_table).unwrap();
-    rela_plt.print_rela_plt();
+    // let rela_table = RelaTable::from(&section_table).unwrap();
+    // let rela_plt = RelaPLT::from(&section_table).unwrap();
+    //rela_plt.print_rela_plt();
     //rela_table.print_rela_table();
     // let ver_req = GnuVersionReq::from(&section_table).unwrap();
+    // let buffer = ver_req.get_dependency_string();
+    // for each in buffer.iter() {
+    //     kprintln!("{:?}", core::str::from_utf8(&each).unwrap());
+    // }
     // ver_req.print_version_req();
     
     // let gnu_ver = GnuVersion::from(&section_table).unwrap();

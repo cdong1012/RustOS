@@ -47,7 +47,7 @@ impl Rela64 {
         new_rela.r_info = u64::from_le_bytes([rela[8], rela[9], rela[10], rela[11], rela[12], rela[13], rela[14], rela[15]]);
 
         new_rela.r_addend = i64::from_le_bytes([rela[16], rela[17], rela[18], rela[19], rela[20], rela[21], rela[22], rela[23]]);
-
+        
         new_rela
     }
 
@@ -90,7 +90,6 @@ impl RelaTable {
             }
             _i += 1;
         }
-        
         let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
         let _entry_size = symbol_table.sh_entsize as usize;
 

@@ -202,3 +202,93 @@ pub mod RelaType {
     pub const R_X86_64_GOTTPOFF: u64 = 0x16;
     pub const R_X86_64_TPOFF32: u64 = 0x17;
 }
+
+#[allow(non_snake_case)]
+#[allow(non_upper_case_globals)]
+pub mod DynTag {
+    pub const DT_NULL: u64 = 0;
+    pub const DT_NEEDED: u64 = 1;
+    pub const DT_PLTRELSZ: u64 = 2;
+    pub const DT_PLTGOT: u64 = 3;
+
+    pub const DT_HASH: u64 = 4;
+    pub const DT_STRTAB: u64 = 5;
+    pub const DT_SYMTAB: u64 = 6;
+    pub const DT_RELA: u64 = 7;
+
+    pub const DT_RELASZ: u64 = 8;
+    pub const DT_RELAENT: u64 = 9;
+    pub const DT_STRSZ: u64 = 10;
+    pub const DT_SYMENT: u64 = 11;
+
+    pub const DT_INIT: u64 = 12;
+    pub const DT_FINI: u64 = 13;
+    pub const DT_SONAME: u64 = 14;
+    pub const DT_RPATH: u64 = 15;
+
+    pub const DT_SYMBOLIC: u64 = 16;
+    pub const DT_REL: u64 = 17;
+    pub const DT_RELSZ: u64 = 18;
+    pub const DT_RELENT: u64 = 19;
+
+    pub const DT_PLTREL: u64 = 20;
+    pub const DT_DEBUG: u64 = 21;
+    pub const DT_TEXTREL: u64 = 22;
+    pub const DT_JMPREL: u64 = 23;
+
+    pub const DT_BIND_NOW: u64 = 24;
+
+    pub const DT_INIT_ARRAY: u64 = 25;
+    pub const DT_FINI_ARRAY: u64 = 26;
+    pub const DT_INIT_ARRAYSZ: u64 = 27;
+    pub const DT_FINI_ARRAYSZ: u64 = 28;
+
+    pub const DT_RUNPATH: u64 = 29;
+    pub const DT_FLAGS: u64 = 30;
+    pub const DT_ENCODINGS: u64 = 32;
+    pub const DT_PREINIT_ARRAYSZ: u64 = 33;
+
+    pub const DT_FLAGS_1: u64 = 0x6ffffffb;
+}   
+
+#[allow(non_snake_case)]
+#[allow(non_upper_case_globals)]
+pub mod DynFlag {
+    pub const DF_ORIGIN: u64 = 0x1;
+    pub const DF_SYMBOLIC: u64 = 0x2;
+    pub const DF_TEXTREL: u64 = 0x4;
+    pub const DF_BIND_NOW: u64 = 0x8;
+    pub const DF_STATIC_TLS: u64 = 0x10;
+}
+
+#[allow(non_snake_case)]
+#[allow(non_upper_case_globals)]
+pub mod DynFlag1 {
+    pub const DF_1_NOW: u64 = 0x1;
+    pub const DF_1_GLOBAL: u64 = 0x2;
+    pub const DF_1_GROUP: u64 = 0x4;
+    pub const DF_1_NODELETE: u64 = 0x8;
+    pub const DF_1_LOADFLTR: u64 = 0x10;
+    pub const DF_1_INITFIRST: u64 = 0x20;
+    pub const DF_1_NOOPEN: u64 = 0x40;
+    pub const DF_1_ORIGIN: u64 = 0x80;
+    pub const DF_1_DIRECT: u64 = 0x100;
+    pub const DF_1_INTERPOSE: u64 = 0x400;
+    pub const DF_1_NODEFLIB: u64 = 0x800;
+    pub const DF_1_NODUMP: u64 = 0x1000;
+    pub const DF_1_CONFALT: u64 = 0x2000;
+    pub const DF_1_ENDFILTEE: u64 = 0x4000;
+    pub const DF_1_DISPRELDNE: u64 = 0x8000;
+    pub const DF_1_DISPRELPND: u64 = 0x10000;
+    pub const DF_1_NODIRECT: u64 = 0x20000;
+    pub const DF_1_IGNMULDEF: u64 = 0x40000;
+    pub const DF_1_NOKSYMS: u64 = 0x80000;
+    pub const DF_1_NOHDR: u64 = 0x100000;
+    pub const DF_1_EDITED: u64 = 0x200000;
+    pub const DF_1_NORELOC: u64 = 0x400000;
+    pub const DF_1_SYMINTPOSE: u64 = 0x800000;
+    pub const DF_1_GLOBAUDIT: u64 = 0x1000000;
+    pub const DF_1_SINGLETON: u64 = 0x2000000;
+}
+
+
