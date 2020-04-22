@@ -1,5 +1,3 @@
-use core::fmt;
-
 #[allow(non_snake_case)]
 #[allow(non_upper_case_globals)]
 pub mod FileHeaderClass {
@@ -174,4 +172,33 @@ pub mod SymbolVis {
     pub const EXPORTED: u8 = 0x4;
     pub const SINGLETON: u8 = 0x5;
     pub const ELIMINATE: u8 = 0x6;
+}
+
+#[allow(non_snake_case)]
+#[allow(non_upper_case_globals)]
+pub mod RelaType {
+    pub const R_X86_64_NONE: u64 = 0x0;
+    pub const R_X86_64_64: u64 = 0x1;
+    pub const R_X86_64_PC32: u64 = 0x2;
+    pub const R_X86_64_GOT32: u64 = 0x3;
+    pub const R_X86_64_PLT32: u64 = 0x4;
+    pub const R_X86_64_COPY: u64 = 0x5;
+    pub const R_X86_64_GLOB_DAT: u64 = 0x6;
+    pub const R_X86_64_JUMP_SLOT: u64 = 0x7;
+    pub const R_X86_64_RELATIVE: u64 = 0x8;
+    pub const R_X86_64_GOTPCREL: u64 = 0x9;
+    pub const R_X86_64_32: u64 = 0xA;
+    pub const R_X86_64_32S: u64 = 0xB;
+    pub const R_X86_64_16: u64 = 0xC;
+    pub const R_X86_64_PC16: u64 = 0xD;
+    pub const R_X86_64_8: u64 = 0xE;
+    pub const R_X86_64_PC8: u64 = 0xF;
+    pub const R_X86_64_DPTMOD64: u64 = 0x10;
+    pub const R_X86_64_DTPOFF64: u64 = 0x11;
+    pub const R_X86_64_TPOFF64: u64 = 0x12;
+    pub const R_X86_64_TLSGD: u64 = 0x13;
+    pub const R_X86_64_TLSLD: u64 = 0x14;
+    pub const R_X86_64_DTPOFF32: u64 = 0x15;
+    pub const R_X86_64_GOTTPOFF: u64 = 0x16;
+    pub const R_X86_64_TPOFF32: u64 = 0x17;
 }

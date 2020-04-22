@@ -349,12 +349,10 @@ impl DynamicSymbolTable {
 
     pub fn print_dynamic_symbol_table(&self) {
         let mut i = 0;
-        //kprintln!("Symbol table '.symtab' contains {} entries:", self.symbols.len());
         while i < self.dynamic_symbols.len() {
             self.print_symbol(i);
             i += 1;
         }
-        
     }
 
     pub fn get_name(&self, index: u32) -> Vec<u8> {
@@ -376,5 +374,24 @@ impl DynamicSymbolTable {
         let gnu_version = GnuVersion::from(&self.section_table.clone()).unwrap();
         let version_vec = gnu_version.get_gnu_version_string();
         version_vec[index].clone()
+    }
+
+    pub fn get_dynamic_string_table(&self) -> Vec<Vec<u8>> {
+        let mut string_table = Vec::new();
+        let mut i = 0;
+        while i < self.dynamic_symbols.len() {
+            let symbol = (&self.dynamic_symbols)[i].clone();
+
+            let mut name = self.get_name(symbol.st_name);
+            let name_version = &self.get_name_version(i);
+            if name_version.len() > 0 {
+                for character in name_version.iter() {
+                    name.push(character.clone());
+                }
+            }
+            string_table.push(name.clone());
+            i += 1;
+        }
+        string_table
     }
 }

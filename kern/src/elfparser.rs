@@ -12,3 +12,4 @@ pub use self::random::PeterRand;
 pub use self::section::{SectionTable, SectionEntry64};
 pub use self::symbol::{Symbol64, SymbolTable, DynamicSymbolTable};
 pub use self::version::{GnuVersionReq, Version64, GnuVersion};
+pub use self::relocation::{RelaTable};

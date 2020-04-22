@@ -81,7 +81,7 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
-use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion};
+use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion, RelaTable};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 pub static FILESYSTEM: FileSystem = FileSystem::uninitialized();
@@ -109,7 +109,9 @@ fn demo_print_elf() {
     // elf.print_elf();
 
     let section_table = SectionTable::from(&elf.raw).unwrap();
-    section_table.print_section_table();
+    // section_table.print_section_table();
+    let rela_table = RelaTable::from(&section_table).unwrap();
+    rela_table.print_rela_table();
     // let ver_req = GnuVersionReq::from(&section_table).unwrap();
     // ver_req.print_version_req();
     
