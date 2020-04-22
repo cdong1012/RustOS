@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use crate::console::{kprintln, kprint};
 use core::mem::size_of;
 use crate::elfparser::header::{RawELFFile, ELFHeader};
-
+use crate::elfparser::values::*;
 // Section entry struct. Entry is in the section table
 #[derive(Debug, Default, Clone)]
 pub struct SectionEntry64 {
@@ -170,49 +170,49 @@ impl SectionTable {
         kprintln!("    Name:                            {}", core::str::from_utf8(&name).unwrap());
         kprint!("    Type:                            ");
         match section.sh_type {
-            0x0	=> {kprint!("NULL");},	
-            0x1	=> {kprint!("PROGBITS");},	
-            0x2	=> {kprint!("SYMTAB");},
-            0x3	=> {kprint!("STRTAB");},
-            0x4	=> {kprint!("RELA");},
-            0x5	=> {kprint!("HASH");},	
-            0x6	=> {kprint!("DYNAMIC");},	
-            0x7	=> {kprint!("NOTE");},	
-            0x8	=> {kprint!("NOBITS");},
-            0x9	=> {kprint!("REL");},	
-            0x0A =>	{kprint!("SHLIB");},	
-            0x0B =>	{kprint!("DYNSYM");},	
-            0x0E =>	{kprint!("INIT_ARRAY");},
-            0x0F =>	{kprint!("FINI_ARRAY");},
-            0x10 =>	{kprint!("PREINIT_ARRAY");},
-            0x11 =>	{kprint!("GROUP");},
-            0x12 =>	{kprint!("SYMTAB_SHNDX");},
-            0x13 =>	{kprint!("NUM");},
-            0x60000000	=> {kprint!("LOOS");},
-            0x6ffffffd => {kprint!("VERDEF");},
-            0x6ffffffe => {kprint!("VERNEED");},
-            0x6fffffff => {kprint!("VERSYM");},
-            _ => {kprint!("Unknown");}	
+            SectionType::NULL	        =>  {kprint!("NULL");},	
+            SectionType::PROGBITS	    =>  {kprint!("PROGBITS");},	
+            SectionType::SYMTAB	        =>  {kprint!("SYMTAB");},
+            SectionType::STRTAB	        =>  {kprint!("STRTAB");},
+            SectionType::RELA	        =>  {kprint!("RELA");},
+            SectionType::HASH	        =>  {kprint!("HASH");},	
+            SectionType::DYNAMIC	    =>  {kprint!("DYNAMIC");},	
+            SectionType::NOTE	        =>  {kprint!("NOTE");},	
+            SectionType::NOBITS	        =>  {kprint!("NOBITS");},
+            SectionType::REL	        =>  {kprint!("REL");},	
+            SectionType::SHLIB          =>  {kprint!("SHLIB");},	
+            SectionType::DYNSYM         =>	{kprint!("DYNSYM");},	
+            SectionType::INIT_ARRAY     =>	{kprint!("INIT_ARRAY");},
+            SectionType::FINI_ARRAY     =>	{kprint!("FINI_ARRAY");},
+            SectionType::PREINIT_ARRAY  =>	{kprint!("PREINIT_ARRAY");},
+            SectionType::GROUP          =>	{kprint!("GROUP");},
+            SectionType::SYMTAB_SHNDX   =>	{kprint!("SYMTAB_SHNDX");},
+            SectionType::NUM            =>	{kprint!("NUM");},
+            SectionType::LOOS	        =>  {kprint!("LOOS");},
+            SectionType::VERDEF         =>  {kprint!("VERDEF");},
+            SectionType::VERNEED        =>  {kprint!("VERNEED");},
+            SectionType::VERSYM         =>  {kprint!("VERSYM");},
+            _                           =>  {kprint!("Unknown");}	
         }
         kprintln!("");
 
         kprint!("    Flag:                            ");
         match section.sh_flags {
-            0x1	=> {kprint!("WRITE");},
-            0x2	=> {kprint!("ALLOC");},
-            0x4	=> {kprint!("EXECINSTR");},
-            0x10 =>	{kprint!("MERGE");},	
-            0x20 =>	{kprint!("STRINGS");},
-            0x40 =>	{kprint!("INFO_LINK");},
-            0x80 =>	{kprint!("LINK_ORDER");},
-            0x100 => {kprint!("OS_NONCONFORMING");},
-            0x200 => {kprint!("GROUP");},
-            0x400 => {kprint!("TLS");},
-            0x0ff00000	=> {kprint!("MASKOS");},
-            0xf0000000	=> {kprint!("MASKPROC");},
-            0x4000000	=> {kprint!("ORDERED");},
-            0x8000000	=> {kprint!("EXCLUDE");},
-            _     => {kprint!("Unknown");},	
+            SectionFlag::WRITE	            =>  {kprint!("WRITE");},
+            SectionFlag::ALLOC	            =>  {kprint!("ALLOC");},
+            SectionFlag::EXECINSTR	        =>  {kprint!("EXECINSTR");},
+            SectionFlag::MERGE              =>	{kprint!("MERGE");},	
+            SectionFlag::STRINGS            =>	{kprint!("STRINGS");},
+            SectionFlag::INFO_LINK          =>	{kprint!("INFO_LINK");},
+            SectionFlag::LINK_ORDER         =>	{kprint!("LINK_ORDER");},
+            SectionFlag::OS_NONCONFORMING   =>  {kprint!("OS_NONCONFORMING");},
+            SectionFlag::GROUP              =>  {kprint!("GROUP");},
+            SectionFlag::TLS                =>  {kprint!("TLS");},
+            SectionFlag::MASKOS	            =>  {kprint!("MASKOS");},
+            SectionFlag::MASKPROC	        =>  {kprint!("MASKPROC");},
+            SectionFlag::ORDERED	        =>  {kprint!("ORDERED");},
+            SectionFlag::EXCLUDE	        =>  {kprint!("EXCLUDE");},
+            _                               =>  {kprint!("Unknown");},	
         }
         kprintln!("");
 

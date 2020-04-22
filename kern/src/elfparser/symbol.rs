@@ -5,6 +5,7 @@ use alloc::vec::Vec;
 use crate::console::{kprintln, kprint};
 use crate::elfparser::section::{SectionTable, SectionEntry64};
 use crate::elfparser::version::{GnuVersion};
+use crate::elfparser::values::*;
 
 // Symbol struct in symbol table
 #[derive(Debug, Default, Clone)]
@@ -163,40 +164,40 @@ impl SymbolTable {
         kprint!("   Size:     {}", size);
         kprint!("   Type:     ");
         match symbol_type {
-            0 => {kprint!(" NOTYPE");},
-            1 => {kprint!(" OBJECT");},
-            2 => {kprint!("  FUNC");},
-            3 => {kprint!("SECTION");},
-            4 => {kprint!("   FILE");},
-            5 => {kprint!(" COMMON");}, 
-            6 => {kprint!("    TLS");},
-            10 => {kprint!("   LOOS");}, 
-            12 => {kprint!("   HIOS");},
-            13 => {kprint!(" LOPROC");},
-            15 => {kprint!(" HIPROC");},
-            _  => {kprint!("UNKNOWN")}
+            SymbolType::NOTYPE  => {kprint!(" NOTYPE");},
+            SymbolType::OBJECT  => {kprint!(" OBJECT");},
+            SymbolType::FUNC    => {kprint!("  FUNC");},
+            SymbolType::SECTION => {kprint!("SECTION");},
+            SymbolType::FILE    => {kprint!("   FILE");},
+            SymbolType::COMMON  => {kprint!(" COMMON");}, 
+            SymbolType::TLS     => {kprint!("    TLS");},
+            SymbolType::LOOS    => {kprint!("   LOOS");}, 
+            SymbolType::HIOS    => {kprint!("   HIOS");},
+            SymbolType::LOPROC  => {kprint!(" LOPROC");},
+            SymbolType::HIPROC  => {kprint!(" HIPROC");},
+            _                   => {kprint!("UNKNOWN")}
         }
         kprint!("   Bind:     ");
         match bind {
-            0 => {kprint!("  LOCAL");},
-            1 => {kprint!(" GLOBAL");},
-            2 => {kprint!("   WEAK");},
-            10 => {kprint!("   LOOS");},
-            12 => {kprint!("   HIOS");},
-            13 => {kprint!(" LOPROC");},
-            15 => {kprint!(" HIPROC");},
-            _ => {kprint!("UNKNOWN");},
+            SymbolBind::LOCAL   => {kprint!("  LOCAL");},
+            SymbolBind::GLOBAL  => {kprint!(" GLOBAL");},
+            SymbolBind::WEAK    => {kprint!("   WEAK");},
+            SymbolBind::LOOS    => {kprint!("   LOOS");},
+            SymbolBind::HIOS    => {kprint!("   HIOS");},
+            SymbolBind::LOPROC  => {kprint!(" LOPROC");},
+            SymbolBind::HIPROC  => {kprint!(" HIPROC");},
+            _                   => {kprint!("UNKNOWN");},
         }
         kprint!("   Vis:      ");
         match vis {
-            0 => {kprint!("DEFAULT");},
-            1 => {kprint!("INTERNAL");},
-            2 => {kprint!("HIDDEN");},
-            3 => {kprint!("PROTECTED");},
-            4 => {kprint!("EXPORTED");},
-            5 => {kprint!("SINGLETON");},
-            6 => {kprint!("ELIMINATE");},
-            _ => {kprint!("UNKNOWN");},
+            SymbolVis::DEFAULT      => {kprint!("DEFAULT");},
+            SymbolVis::INTERNAL     => {kprint!("INTERNAL");},
+            SymbolVis::HIDDEN       => {kprint!("HIDDEN");},
+            SymbolVis::PROTECTED    => {kprint!("PROTECTED");},
+            SymbolVis::EXPORTED     => {kprint!("EXPORTED");},
+            SymbolVis::SINGLETON    => {kprint!("SINGLETON");},
+            SymbolVis::ELIMINATE    => {kprint!("ELIMINATE");},
+            _                       => {kprint!("UNKNOWN");},
         }
         if name.len() > 25 {
             kprintln!("   Name:     {}", core::str::from_utf8(&name[..25]).unwrap());
@@ -308,40 +309,40 @@ impl DynamicSymbolTable {
         kprint!("   Size:     {}", size);
         kprint!("   Type:     ");
         match symbol_type {
-            0 => {kprint!(" NOTYPE");},
-            1 => {kprint!(" OBJECT");},
-            2 => {kprint!("  FUNC");},
-            3 => {kprint!("SECTION");},
-            4 => {kprint!("   FILE");},
-            5 => {kprint!(" COMMON");}, 
-            6 => {kprint!("    TLS");},
-            10 => {kprint!("   LOOS");}, 
-            12 => {kprint!("   HIOS");},
-            13 => {kprint!(" LOPROC");},
-            15 => {kprint!(" HIPROC");},
-            _  => {kprint!("UNKNOWN")}
+            SymbolType::NOTYPE  => {kprint!(" NOTYPE");},
+            SymbolType::OBJECT  => {kprint!(" OBJECT");},
+            SymbolType::FUNC    => {kprint!("  FUNC");},
+            SymbolType::SECTION => {kprint!("SECTION");},
+            SymbolType::FILE    => {kprint!("   FILE");},
+            SymbolType::COMMON  => {kprint!(" COMMON");}, 
+            SymbolType::TLS     => {kprint!("    TLS");},
+            SymbolType::LOOS    => {kprint!("   LOOS");}, 
+            SymbolType::HIOS    => {kprint!("   HIOS");},
+            SymbolType::LOPROC  => {kprint!(" LOPROC");},
+            SymbolType::HIPROC  => {kprint!(" HIPROC");},
+            _                   => {kprint!("UNKNOWN")}
         }
         kprint!("   Bind:     ");
         match bind {
-            0 => {kprint!("  LOCAL");},
-            1 => {kprint!(" GLOBAL");},
-            2 => {kprint!("   WEAK");},
-            10 => {kprint!("   LOOS");},
-            12 => {kprint!("   HIOS");},
-            13 => {kprint!(" LOPROC");},
-            15 => {kprint!(" HIPROC");},
-            _ => {kprint!("UNKNOWN");},
+            SymbolBind::LOCAL   => {kprint!("  LOCAL");},
+            SymbolBind::GLOBAL  => {kprint!(" GLOBAL");},
+            SymbolBind::WEAK    => {kprint!("   WEAK");},
+            SymbolBind::LOOS    => {kprint!("   LOOS");},
+            SymbolBind::HIOS    => {kprint!("   HIOS");},
+            SymbolBind::LOPROC  => {kprint!(" LOPROC");},
+            SymbolBind::HIPROC  => {kprint!(" HIPROC");},
+            _                   => {kprint!("UNKNOWN");},
         }
         kprint!("   Vis:      ");
         match vis {
-            0 => {kprint!("DEFAULT");},
-            1 => {kprint!("INTERNAL");},
-            2 => {kprint!("HIDDEN");},
-            3 => {kprint!("PROTECTED");},
-            4 => {kprint!("EXPORTED");},
-            5 => {kprint!("SINGLETON");},
-            6 => {kprint!("ELIMINATE");},
-            _ => {kprint!("UNKNOWN");},
+            SymbolVis::DEFAULT      => {kprint!("DEFAULT");},
+            SymbolVis::INTERNAL     => {kprint!("INTERNAL");},
+            SymbolVis::HIDDEN       => {kprint!("HIDDEN");},
+            SymbolVis::PROTECTED    => {kprint!("PROTECTED");},
+            SymbolVis::EXPORTED     => {kprint!("EXPORTED");},
+            SymbolVis::SINGLETON    => {kprint!("SINGLETON");},
+            SymbolVis::ELIMINATE    => {kprint!("ELIMINATE");},
+            _                       => {kprint!("UNKNOWN");},
         }
         kprintln!("   Name:     {}", core::str::from_utf8(&name).unwrap());
     }

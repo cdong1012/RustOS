@@ -43,6 +43,7 @@ impl ELF {
     // Print header table
     pub fn print_htable(&self) {
         let mut num = 0;
+        kprintln!("There are {} program headers, starting at offset {}", self.header_table.len(), self.header_table[0].p_offset);
         for entry in self.header_table.iter() {
             kprint!("{}.", num);
             entry.print_header();

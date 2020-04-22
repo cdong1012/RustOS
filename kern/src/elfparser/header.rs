@@ -8,7 +8,7 @@ use fat32::traits::Entry;
 use crate::console::{kprintln, kprint};
 use core::ops::{Deref, DerefMut};
 use core::mem::size_of;
-
+use crate::elfparser::values::*;
 // RawELFFile struct, contains a vector of raw u8s
 #[derive(Debug, Default, Clone)]
 pub struct RawELFFile {
@@ -221,64 +221,48 @@ impl ELFHeader {
 
         kprint!("   Class:                                  ");
         match self.ei_class {
-            1 => {
-                kprint!("ELF32");
-            },
-            2 => {
-                kprint!("ELF64");
-            }
-            _ => {
-                kprint!("Can't detect class");
-            }
+            FileHeaderClass::ELF32 => { kprint!("ELF32");},
+            FileHeaderClass::ELF64 => { kprint!("ELF64");},
+            _                  => { kprint!("Can't detect class");}
         };
         kprintln!("");
 
         kprint!("   Data:                                   2's complement, ");
         match self.ei_data {
-            1 => {
-                kprint!("little endian");
-            },
-            2 => {
-                kprint!("big endian");
-            },
-            _ => {
-                kprint!("Can't detect endianess");
-            }
+            FileHeaderComp::LE => { kprint!("little endian");},
+            FileHeaderComp::BE => { kprint!("big endian");},
+            _              => { kprint!("Can't detect endianess");}
         }
         kprintln!("");
 
         kprint!("   Version:                                ");
         match self.ei_version {
-            1 => {
-                kprint!("1 (current)");
-            },
-            _ => {
-                kprint!("Can't detect version");
-            }
+            1 => { kprint!("1 (current)");},
+            _ => { kprint!("Can't detect version");}
         }
         kprintln!("");
 
         kprint!("   OS/ABI:                                 UNIX - ");
         match self.ei_osabi {
-            0x00 => {kprint!("System V"); },
-            0x01 => {kprint!("HP-UX"); },
-            0x02 => {kprint!("NetBSD"); },
-            0x03 => {kprint!("Linux"); },
-            0x04 => {kprint!("GNU Hurd"); },
-            0x06 => {kprint!("Solaris"); },
-            0x07 =>	{kprint!("AIX"); },
-            0x08 =>	{kprint!("IRIX"); },
-            0x09 =>	{kprint!("FreeBSD"); },
-            0x0A => {kprint!("Tru64"); },
-            0x0B => {kprint!("Novell Modesto");},
-            0x0C => {kprint!("OpenBSD");},
-            0x0D =>	{kprint!("OpenVMS");},
-            0x0E =>	{kprint!("NonStop Kernel");},
-            0x0F =>	{kprint!("AROS");},
-            0x10 => {kprint!("Fenix OS");},
-            0x11 =>	{kprint!("CloudABI");},
-            0x12 =>	{kprint!("Stratus Technologies OpenVOS");},
-            _    => {kprint!("Can't detect OS/ABI");},
+            FileHeaderOSABI::SYSV       =>  {kprint!("System V"); },
+            FileHeaderOSABI::HPUX       =>  {kprint!("HP-UX"); },
+            FileHeaderOSABI::NETBSD     =>  {kprint!("NetBSD"); },
+            FileHeaderOSABI::LINUX      =>  {kprint!("Linux"); },
+            FileHeaderOSABI::GNUHURD    =>  {kprint!("GNU Hurd"); },
+            FileHeaderOSABI::SOLARIS    =>  {kprint!("Solaris"); },
+            FileHeaderOSABI::AIX        =>  {kprint!("AIX"); },
+            FileHeaderOSABI::IRIX       =>	{kprint!("IRIX"); },
+            FileHeaderOSABI::FREEBSD    =>	{kprint!("FreeBSD"); },
+            FileHeaderOSABI::TRU64      =>  {kprint!("Tru64"); },
+            FileHeaderOSABI::NOVMOD     =>  {kprint!("Novell Modesto");},
+            FileHeaderOSABI::OPENBSD    =>  {kprint!("OpenBSD");},
+            FileHeaderOSABI::OPENVMS    =>	{kprint!("OpenVMS");},
+            FileHeaderOSABI::NONSTOP    =>	{kprint!("NonStop Kernel");},
+            FileHeaderOSABI::AROS       =>	{kprint!("AROS");},
+            FileHeaderOSABI::FENIX      =>  {kprint!("Fenix OS");},
+            FileHeaderOSABI::CLOUDABI   =>	{kprint!("CloudABI");},
+            FileHeaderOSABI::OPENVOS    =>	{kprint!("Stratus Technologies OpenVOS");},
+            _                       =>  {kprint!("Can't detect OS/ABI");},
         }
         kprintln!("");
 
@@ -286,34 +270,35 @@ impl ELFHeader {
 
         kprint!("   Type:                                   ");
         match self.e_type {
-            0x00 =>	{kprint!("NONE");},
-            0x01 =>	{kprint!("REL");},
-            0x02 =>	{kprint!("EXEC");},
-            0x03 =>	{kprint!("DYN");},
-            0x04 =>	{kprint!("CORE");},
-            0xfe00 => {kprint!("LOOS");},
-            0xfeff => {kprint!("HIOS");},
-            0xff00 => {kprint!("LOPROC");},
-            0xffff => {kprint!("HIPROC");},
-            _    => {kprint!("Can't detect type");}
+            FileHeaderType::NONE    =>	{kprint!("NONE");},
+            FileHeaderType::REL     =>	{kprint!("REL");},
+            FileHeaderType::EXEC    =>	{kprint!("EXEC");},
+            FileHeaderType::DYN     =>	{kprint!("DYN");},
+            FileHeaderType::CORE    =>	{kprint!("CORE");},
+            FileHeaderType::LOOS    =>  {kprint!("LOOS");},
+            FileHeaderType::HIOS    =>  {kprint!("HIOS");},
+            FileHeaderType::LOPROC  =>  {kprint!("LOPROC");},
+            FileHeaderType::HIPROC  =>  {kprint!("HIPROC");},
+            _                   =>  {kprint!("Can't detect type");}
         }
+
         kprintln!("");
 
         kprint!("   Machine:                                ");
         match self.e_machine {
-            0x00 =>	{kprint!("No specific instruction set");},
-            0x02 =>	{kprint!("SPARC");},
-            0x03 =>	{kprint!("x86");},
-            0x08 =>	{kprint!("MIPS");},
-            0x14 =>	{kprint!("PowerPC");},
-            0x16 =>	{kprint!("S390");},
-            0x28 =>	{kprint!("ARM");},
-            0x2A =>	{kprint!("SuperH");},
-            0x32 => {kprint!("IA-64");},
-            0x3E =>	{kprint!("amd64");},
-            0xB7 =>	{kprint!("AArch64");},
-            0xF3 =>	{kprint!("RISC-V");},
-            _    => {kprint!("Can't detect machine");}
+            FileHeaderMachine::NONE     =>	{kprint!("No specific instruction set");},
+            FileHeaderMachine::SPARC    =>	{kprint!("SPARC");},
+            FileHeaderMachine::x86      =>	{kprint!("x86");},
+            FileHeaderMachine::MIPS     =>	{kprint!("MIPS");},
+            FileHeaderMachine::PowerPC  =>	{kprint!("PowerPC");},
+            FileHeaderMachine::S390     =>	{kprint!("S390");},
+            FileHeaderMachine::ARM      =>	{kprint!("ARM");},
+            FileHeaderMachine::SuperH   =>	{kprint!("SuperH");},
+            FileHeaderMachine::IA64     =>  {kprint!("IA-64");},
+            FileHeaderMachine::AMD64    =>	{kprint!("amd64");},
+            FileHeaderMachine::AArch64  =>	{kprint!("AArch64");},
+            FileHeaderMachine::RISCV    =>	{kprint!("RISC-V");},
+            _                       =>  {kprint!("Can't detect machine");}
         }
         kprintln!("");
 
@@ -434,21 +419,22 @@ impl ProgHeader32 {
         kprintln!("Program Header:");
         kprint!("   Type:                    ");
         match self.p_type {
-            0x00000000 => {kprint!("NULL");},	
-            0x00000001 => {kprint!("LOAD");},	
-            0x00000002 => {kprint!("DYNAMIC");},	
-            0x00000003 => {kprint!("INTERP");},	
-            0x00000004 => {kprint!("NOTE");},	
-            0x00000005 => {kprint!("SHLIB");},
-            0x00000006 => {kprint!("PHDR");},	
-            0x00000007 => {kprint!("TLS");},	
-            0x60000000 => {kprint!("LOOS");},	
-            0x6FFFFFFF => {kprint!("HIOS");},
-            0x70000000 => {kprint!("LOPROC");},
-            0x7FFFFFFF => {kprint!("HIPROC");},
-            0x6474e551 => {kprint!("GNU_STACK");},
-            0x6474e550 => {kprint!("GNU_EH_FRAME");},
-            _          => {kprint!("Can't detect type");}
+            ProgHeaderMachine::NULL         => {kprint!("NULL");},	
+            ProgHeaderMachine::LOAD         => {kprint!("LOAD");},	
+            ProgHeaderMachine::DYNAMIC      => {kprint!("DYNAMIC");},	
+            ProgHeaderMachine::INTERP       => {kprint!("INTERP");},	
+            ProgHeaderMachine::NOTE         => {kprint!("NOTE");},	
+            ProgHeaderMachine::SHLIB        => {kprint!("SHLIB");},
+            ProgHeaderMachine::PHDR         => {kprint!("PHDR");},	
+            ProgHeaderMachine::TLS          => {kprint!("TLS");},	
+            ProgHeaderMachine::LOOS         => {kprint!("LOOS");},	
+            ProgHeaderMachine::HIOS         => {kprint!("HIOS");},
+            ProgHeaderMachine::LOPROC       => {kprint!("LOPROC");},
+            ProgHeaderMachine::HIPROC       => {kprint!("HIPROC");},
+            ProgHeaderMachine::GNU_STACK    => {kprint!("GNU_STACK");},
+            ProgHeaderMachine::GNU_EH_FRAME => {kprint!("GNU_EH_FRAME");},
+            ProgHeaderMachine::GNU_RELRO    => {kprint!("GNU_RELRO");},
+            _                               => {kprint!("Can't detect type 0x{:x}", self.p_type);}
         }
         kprintln!("");
 
@@ -569,21 +555,22 @@ impl ProgHeader64 {
         kprintln!("Program Header:");
         kprint!("   Type:                    ");
         match self.p_type {
-            0x00000000 => {kprint!("NULL");},	
-            0x00000001 => {kprint!("LOAD");},	
-            0x00000002 => {kprint!("DYNAMIC");},	
-            0x00000003 => {kprint!("INTERP");},	
-            0x00000004 => {kprint!("NOTE");},	
-            0x00000005 => {kprint!("SHLIB");},
-            0x00000006 => {kprint!("PHDR");},	
-            0x00000007 => {kprint!("TLS");},	
-            0x60000000 => {kprint!("LOOS");},	
-            0x6FFFFFFF => {kprint!("HIOS");},
-            0x70000000 => {kprint!("LOPROC");},
-            0x7FFFFFFF => {kprint!("HIPROC");},
-            0x6474e551 => {kprint!("GNU_STACK");},
-            0x6474e550 => {kprint!("GNU_EH_FRAME");},
-            _          => {kprint!("Can't detect type");}
+            ProgHeaderMachine::NULL         => {kprint!("NULL");},	
+            ProgHeaderMachine::LOAD         => {kprint!("LOAD");},	
+            ProgHeaderMachine::DYNAMIC      => {kprint!("DYNAMIC");},	
+            ProgHeaderMachine::INTERP       => {kprint!("INTERP");},	
+            ProgHeaderMachine::NOTE         => {kprint!("NOTE");},	
+            ProgHeaderMachine::SHLIB        => {kprint!("SHLIB");},
+            ProgHeaderMachine::PHDR         => {kprint!("PHDR");},	
+            ProgHeaderMachine::TLS          => {kprint!("TLS");},	
+            ProgHeaderMachine::LOOS         => {kprint!("LOOS");},	
+            ProgHeaderMachine::HIOS         => {kprint!("HIOS");},
+            ProgHeaderMachine::LOPROC       => {kprint!("LOPROC");},
+            ProgHeaderMachine::HIPROC       => {kprint!("HIPROC");},
+            ProgHeaderMachine::GNU_STACK    => {kprint!("GNU_STACK");},
+            ProgHeaderMachine::GNU_EH_FRAME => {kprint!("GNU_EH_FRAME");},
+            ProgHeaderMachine::GNU_RELRO    => {kprint!("GNU_RELRO");},
+            _                               => {kprint!("Can't detect type");}
         }
         kprintln!("");
 

@@ -106,27 +106,20 @@ fn kmain() -> ! {
 fn demo_print_elf() {
     let mut elf = ELF::new();
     elf.initialize(Path::new("real"));
-    let section_table = SectionTable::from(&elf.raw).unwrap();
+    // elf.print_elf();
 
-    let ver_req = GnuVersionReq::from(&section_table).unwrap();
+    let section_table = SectionTable::from(&elf.raw).unwrap();
+    section_table.print_section_table();
+    // let ver_req = GnuVersionReq::from(&section_table).unwrap();
     // ver_req.print_version_req();
     
-    let gnu_ver = GnuVersion::from(&section_table).unwrap();
+    // let gnu_ver = GnuVersion::from(&section_table).unwrap();
 
-    let dyn_sym = DynamicSymbolTable::from(&section_table).unwrap();
-    let sym = SymbolTable::from(&section_table).unwrap();
+    // let dyn_sym = DynamicSymbolTable::from(&section_table).unwrap();
+    // let sym = SymbolTable::from(&section_table).unwrap();
 
-    sym.print_symbol_table();
+    // sym.print_symbol_table();
     //dyn_sym.print_dynamic_symbol_table();
     // gnu_ver.print_gnu_version();
 
-    // for i in ver_req.verneeds.iter() {
-    //     kprintln!("i.file 0x{:x}", i.file);
-    //     kprintln!("{:?}", core::str::from_utf8(&ver_req.get_name(i.file)).unwrap());
-    // }
-    //elf.print_elf();
-    // let symbol_table = SymbolTable::from(&section_table).unwrap();
-    // let dynamic_symbol_table = DynamicSymbolTable::from(&section_table).unwrap();
-    // dynamic_symbol_table.print_symbol(2);
-    // symbol_table.print_symbol_table();
 }
