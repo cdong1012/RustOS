@@ -83,8 +83,6 @@ dependencies = [
  "fat32 0.1.0",
  "kernel_api 0.1.0",
  "pi 0.1.0",
- "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand_core 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "shim 0.1.0",
  "stack-vec 0.1.0",
 ]

@@ -1,6 +1,5 @@
 mod header;
 mod elf;
-mod random;
 mod section;
 mod symbol;
 mod version;
@@ -8,8 +7,7 @@ mod relocation;
 mod values;
 pub use self::header::{ELFHeader, RawELFFile, ProgHeader64};
 pub use self::elf::{ELF};
-pub use self::random::PeterRand;
 pub use self::section::{SectionTable, SectionEntry64};
 pub use self::symbol::{Symbol64, SymbolTable, DynamicSymbolTable};
 pub use self::version::{GnuVersionReq, Version64, GnuVersion};
-pub use self::relocation::{RelaTable};
+pub use self::relocation::{RelaTable, RelaPLT};

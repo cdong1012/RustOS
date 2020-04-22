@@ -70,6 +70,8 @@ pub struct RelaTable {
 }
 
 
+
+// .rela.dyn
 impl RelaTable {
     pub fn new() -> RelaTable {
         RelaTable::default()
@@ -196,6 +198,140 @@ impl RelaTable {
     pub fn get_name(&self, index: usize) -> Vec<u8> {
         self.rela_string_table[index].clone()
     }
-
 }
 
+#[derive(Debug, Default, Clone)]
+pub struct RelaPLT {
+    pub relas: Vec<Rela64>,
+    pub section_table: SectionTable,
+    pub rela_string_table: Vec<Vec<u8>>
+}
+
+// .rela.plt
+impl RelaPLT {
+    pub fn new() -> RelaPLT {
+        RelaPLT::default()
+    }
+
+    pub fn from(section_table: &SectionTable) -> Result<RelaPLT, Error> {
+        let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
+        let mut _i = 0;
+        for section in (&section_table.sections).iter() {
+            if section.sh_type == SectionType::RELA { // dynamic symbol table type == 0xB
+                let name = section_table.get_name(section.sh_name);
+                if core::str::from_utf8(&name).unwrap() == ".rela.plt" {
+                    symbol_table = section;
+                    break;
+                }
+            }
+            _i += 1;
+        }
+        
+        let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
+        let _entry_size = symbol_table.sh_entsize as usize;
+
+        let raw = &section_table.elf;
+        let mut raw_section_table = Vec::new();
+
+        let mut index = symbol_table.sh_offset as usize;
+        let end = index + (symbol_table.sh_size as usize);
+        while index < end {
+            raw_section_table.push((&raw)[index].clone());
+            index += 1;
+        }
+        
+        //let mut new_symbol_table = DynamicSymbolTable::new();
+        let mut new_rela_plt = RelaPLT::new();
+
+        let mut start = 0usize;
+        while start < entry_num {
+            new_rela_plt.relas.push(Rela64::from(&raw_section_table, start));
+            start += 1;
+        }
+        
+        new_rela_plt.section_table = section_table.clone();
+        let mut dyn_sym_table = DynamicSymbolTable::from(&section_table).unwrap();
+        new_rela_plt.rela_string_table = dyn_sym_table.get_dynamic_string_table();
+        Ok(new_rela_plt)
+    }
+
+    pub fn get_name(&self, index: usize) -> Vec<u8> {
+        self.rela_string_table[index].clone()
+    }
+
+    pub fn print_rela_plt(&self) {
+        let mut i = 0;
+        kprintln!("Index   Offset           Info          type               sym     name + append");
+        while i < self.relas.len() {
+            self.print_rela(i);
+            i += 1;
+        }
+    }
+
+    pub fn print_rela(&self, index: usize) {
+        let rela = self.relas[index].clone();
+
+        let offset = rela.r_offset;
+        let info = rela.r_info;
+        let rela_type = rela.get_type();
+        let sym = rela.get_sym();
+        let name = &self.get_name(sym as usize).clone();
+        kprint!("{}:", index);
+        let mut i = 0;
+        while i + index.to_string().len() < 7 {
+            kprint!(" ");
+            i += 1;
+        }
+        kprint!("{:x}   ", offset);
+        kprint!("{:?}   ", info);
+        i = 0;
+        while i + info.to_string().len() < 14 {
+            kprint!(" ");
+            i += 1;
+        }
+        match rela_type {
+            RelaType::R_X86_64_NONE => {kprint!("R_X86_64_NONE");},
+            RelaType::R_X86_64_64 => {kprint!("R_X86_64_64");},
+            RelaType::R_X86_64_PC32 => {kprint!("R_X86_64_PC32");},
+            RelaType::R_X86_64_GOT32 => {kprint!("R_X86_64_GOT32");},
+            RelaType::R_X86_64_PLT32 => {kprint!("R_X86_64_PLT32");},
+            RelaType::R_X86_64_COPY => {kprint!("R_X86_64_COPY");},
+            RelaType::R_X86_64_GLOB_DAT => {kprint!("R_X86_64_GLOB_DAT");},
+            RelaType::R_X86_64_JUMP_SLOT => {kprint!("R_X86_64_JUMP_SLOT");},
+            RelaType::R_X86_64_RELATIVE => {kprint!("R_X86_64_RELATIVE");},
+            RelaType::R_X86_64_GOTPCREL => {kprint!("R_X86_64_GOTPCREL");},
+            RelaType::R_X86_64_32 => {kprint!("R_X86_64_32");},
+            RelaType::R_X86_64_32S => {kprint!("R_X86_64_32S");},
+            RelaType::R_X86_64_16 => {kprint!("R_X86_64_16");},
+            RelaType::R_X86_64_PC16 => {kprint!("R_X86_64_PC16");},
+            RelaType::R_X86_64_8 => {kprint!("R_X86_64_8");},
+            RelaType::R_X86_64_PC8 => {kprint!("R_X86_64_PC8");},
+            RelaType::R_X86_64_DPTMOD64 => {kprint!("R_X86_64_DPTMOD64");},
+            RelaType::R_X86_64_DTPOFF64 => {kprint!("R_X86_64_DTPOFF64");},
+            RelaType::R_X86_64_TPOFF64 => {kprint!("R_X86_64_TPOFF64");},
+            RelaType::R_X86_64_TLSGD => {kprint!("R_X86_64_TLSGD");},
+            RelaType::R_X86_64_TLSLD => {kprint!("R_X86_64_TLSLD");},
+            RelaType::R_X86_64_DTPOFF32 => {kprint!("R_X86_64_DTPOFF32");},
+            RelaType::R_X86_64_GOTTPOFF => {kprint!("R_X86_64_GOTTPOFF");},
+            RelaType::R_X86_64_TPOFF32 => {kprint!("R_X86_64_TPOFF32");},
+            _ => {kprint!("UNKNOWN");},
+        }
+
+        i = 0;
+        while i + rela_type.to_string().len() < 7 {
+            kprint!(" ");
+            i += 1;
+        }
+        kprint!("{} ", sym);
+        i = 0;
+        while i + sym.to_string().len() < 12 {
+            kprint!(" ");
+            i += 1;
+        }
+        if name.len() == 0 {
+            kprintln!("{:x}", rela.r_addend);
+        } else {
+            kprintln!("{} + {:x}", core::str::from_utf8(&name).unwrap(), rela.r_addend);
+        }
+    }
+}
