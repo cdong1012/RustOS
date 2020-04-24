@@ -81,16 +81,23 @@ impl SymbolTable {
     }
 
     // From section table into symbol table
-    pub fn from(section_table: &SectionTable) -> Result<SymbolTable, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<SymbolTable, usize> {
         let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == 0x2 { // symbol table type == 0x2
                 symbol_table = section;
+                detected = true;
                 break;
             }
             _i += 1;
         }
+
+        if !detected {
+            return Err(0usize);
+        }
+
         let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
         let _entry_size = symbol_table.sh_entsize as usize;
 
@@ -236,16 +243,23 @@ impl DynamicSymbolTable {
         DynamicSymbolTable::default()
     }
 
-    pub fn from(section_table: &SectionTable) -> Result<DynamicSymbolTable, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<DynamicSymbolTable, usize> {
         let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == 0xB { // dynamic symbol table type == 0xB
                 symbol_table = section;
+                detected = true;
                 break;
             }
             _i += 1;
         }
+
+        if !detected {
+            return Err(0usize);
+        }
+
         let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
         let _entry_size = symbol_table.sh_entsize as usize;
 

@@ -7,7 +7,7 @@ use crate::console::{kprint, kprintln, CONSOLE};
 use crate::FILESYSTEM;
 use core::fmt::Write;
 use core::str::FromStr;
-use crate::elfparser::{ELF};
+use crate::elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion, RelaTable, RelaPLT, DynamicTable};
 /// Error type for `Command` parse failures.
 #[derive(Debug)]
 enum Error {
@@ -92,7 +92,6 @@ pub fn shell(prefix: &str) {
                 let args_str = core::str::from_utf8(command.as_slice()).unwrap();
                 match Command::parse(args_str, &mut args) {
                     Ok(com) => {
-                        // com.args is stackvec of the arguments
                         if Command::path(&com) == "echo" { // handle echo
                             let mut iterator = com.args.into_iter();
                             iterator.next();
@@ -121,10 +120,19 @@ pub fn shell(prefix: &str) {
                             kernel_api::syscall::sleep(core::time::Duration::from_millis(ms as u64));
                         
                         } else if Command::path(&com) == "readelf" {
-                            
                             if com.args.len() != 3 {
                                 kprintln!("Invalid number of argument");
-                                kprintln!("Usage: readelf <flag> <file_name>");
+                                kprintln!("Usage: readelf <option(s)> elf-file(s)");
+                                kprintln!(" Display information about the contents of ELF format files");
+                                kprintln!(" Options are:");
+                                kprintln!("  -h --file-header       Display the ELF file header");
+                                kprintln!("  -l --program-headers   Display the program headers");
+                                kprintln!("  -S --section-headers   Display the sections' header");
+                                kprintln!("  -s --symbols           Display the symbol table");
+                                kprintln!("  --dyn-syms             Display the dynamic symbol table");
+                                kprintln!("  -r --relocs            Display the relocations (if present)");
+                                kprintln!("  -d --dynamic           Display the dynamic section (if present)");
+                                kprintln!("  -V --version-info      Display the version sections (if present)");
                                 break 'line;
                             }
                             let args = com.args;
@@ -136,15 +144,102 @@ pub fn shell(prefix: &str) {
                             }
 
                             let mut elf = ELF::new();
-                            elf.initialize(Path::new("fib"));
+                            if !elf.initialize(Path::new(args[2])) {
+                                kprintln!("File not found");
+                                break 'line;
+                            }
+                            let section_table = match SectionTable::from(&elf.raw){
+                                Ok(section_table) => {section_table},
+                                Err(_) => {
+                                    kprintln!("Can't find section table");
+                                    break 'line;
+                                }
+                            };
                             if args[1] == "-a" || args[1] == "--all" {
                                 elf.print_elf();
                             } else if args[1] == "-h" || args[1] == "--file-header" {
                                 elf.header.print_header();
-                            } else if args[1] == "-l" || args[1] == "--program-header" {
+                            } else if args[1] == "-l" || args[1] == "--program-headers" {
                                 elf.print_htable();
+                            } else if args[1] == "-S" || args[1] == "--section-headers" {
+                                section_table.print_section_table();
+                            } else if args[1] == "-s" || args[1] == "--symbols" {
+                                let symbol_table = match SymbolTable::from(&section_table) {
+                                    Ok(section_table) => section_table,
+                                    Err(_) => {
+                                        kprintln!("Can't find symbol table");
+                                        break 'line;
+                                    }
+                                };
+                                symbol_table.print_symbol_table();
+                            } else if args[1] == "-ds" || args[1] == "--dyn-syms" {
+                                let dynamic_symbol_table = match DynamicSymbolTable::from(&section_table) {
+                                    Ok(dyn_sym_table) => dyn_sym_table,
+                                    Err(_) => {
+                                        kprintln!("Cant find dynamic symbol table");
+                                        break 'line;
+                                    }
+                                };
+                                dynamic_symbol_table.print_dynamic_symbol_table();
+                            } else if args[1] == "-r" || args[1] == "--relocs" {
+                                let rela_table = match RelaTable::from(&section_table) {
+                                    Ok(rela_table) => rela_table,
+                                    Err(_) => {
+                                        kprintln!("Can't find realocation table");
+                                        break 'line;
+                                    }
+                                };
+                                let plt_table = match RelaPLT::from(&section_table) {
+                                    Ok(plt) => plt,
+                                    Err(_) => {
+                                        kprintln!("Can't find PLT table");
+                                        break 'line;
+                                    }
+                                };
+                                rela_table.print_rela_table();
+                                kprintln!("");
+                                plt_table.print_rela_plt();
+                            } else if args[1] == "-d" || args[1] == "--dynamic" {
+                                let dynamic_table = match DynamicTable::from(&section_table) {
+                                    Ok(dynamic_table) => dynamic_table,
+                                    Err(_) => {
+                                        kprintln!("Can't find dynamic table");
+                                        break 'line;
+                                    }
+                                };
+                                dynamic_table.print_dyn_table();
+                            } else if args[1] == "-V" || args[2] == "--version-info" {
+                                let gnu_req = match GnuVersionReq::from(&section_table) {
+                                    Ok(gnu_req) => gnu_req,
+                                    Err(_) => {
+                                        kprintln!("Can't find version requirement section");
+                                        break 'line;
+                                    }
+                                };
+                                let gnu_ver = match GnuVersion::from(&section_table) {
+                                    Ok(gnu_ver) => gnu_ver,
+                                    Err(_) => {
+                                        kprintln!("Can't find version section");
+                                        break 'line;
+                                    }
+                                };
+                                
+                                gnu_ver.print_gnu_version();
+                                kprintln!("");
+                                gnu_req.print_version_req();
                             } else {
                                 kprintln!("The flag you submitted is not supported");
+                                kprintln!("Usage: readelf <option(s)> elf-file(s)");
+                                kprintln!(" Display information about the contents of ELF format files");
+                                kprintln!(" Options are:");
+                                kprintln!("  -h --file-header       Display the ELF file header");
+                                kprintln!("  -l --program-headers   Display the program headers");
+                                kprintln!("  -S --section-headers   Display the sections' header");
+                                kprintln!("  -s --symbols           Display the symbol table");
+                                kprintln!("  --dyn-syms             Display the dynamic symbol table");
+                                kprintln!("  -r --relocs            Display the relocations (if present)");
+                                kprintln!("  -d --dynamic           Display the dynamic section (if present)");
+                                kprintln!("  -V --version-info      Display the version sections (if present)");
                             }
                             break 'line;
                         } else if Command::path(&com) == "pwd" {

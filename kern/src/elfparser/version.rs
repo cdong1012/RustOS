@@ -54,16 +54,21 @@ impl GnuVersionReq {
         GnuVersionReq::default()
     }
 
-    pub fn from(section_table: &SectionTable) -> Result<GnuVersionReq, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<GnuVersionReq, usize> {
         let mut version_req: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == 0x6ffffffe { // symbol table type == 0x2
                 version_req = section;
+                detected = true;
                 break;
             }
             _i += 1;
         }        
+        if !detected {
+            return Err(0usize);
+        }
         let entry_num = (version_req.sh_size as usize)/(16usize);
         let _entry_size = version_req.sh_entsize as usize;
         let raw = &section_table.elf;
@@ -221,19 +226,24 @@ impl GnuVersion {
         GnuVersion::default()
     }
 
-    pub fn from(section_table: &SectionTable) -> Result<GnuVersion, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<GnuVersion, usize> {
 
         let mut gnu_version_table: &SectionEntry64 = &SectionEntry64::new();
         //let mut version_req: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == 0x6fffffff { // VERSYM type == 0x6fffffff
                 gnu_version_table = section;
+                detected = true;
                 break;
             }
             _i += 1;
         }        
 
+        if !detected {
+            return Err(0usize);
+        }
         let entry_num = (gnu_version_table.sh_size as usize)/(2usize);
         let _entry_size = gnu_version_table.sh_entsize as usize;
         let raw = &section_table.elf;

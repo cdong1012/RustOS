@@ -77,19 +77,26 @@ impl RelaTable {
         RelaTable::default()
     }
 
-    pub fn from(section_table: &SectionTable) -> Result<RelaTable, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<RelaTable, usize> {
         let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == SectionType::RELA { // dynamic symbol table type == 0xB
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".rela.dyn" {
                     symbol_table = section;
+                    detected = true;
                     break;
                 }
             }
             _i += 1;
         }
+
+        if !detected {
+            return Err(0usize);
+        }
+
         let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
         let _entry_size = symbol_table.sh_entsize as usize;
 
@@ -119,6 +126,7 @@ impl RelaTable {
     }
 
     pub fn print_rela_table(&self) {
+        kprintln!("Relocation section '.rela.dyn' contains {} entries:", self.relas.len());
         let mut i = 0;
         kprintln!("Index   Offset           Info          type               sym     name + append");
         while i < self.relas.len() {
@@ -212,20 +220,25 @@ impl RelaPLT {
         RelaPLT::default()
     }
 
-    pub fn from(section_table: &SectionTable) -> Result<RelaPLT, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<RelaPLT, usize> {
         let mut symbol_table: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == SectionType::RELA { // dynamic symbol table type == 0xB
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".rela.plt" {
                     symbol_table = section;
+                    detected = true;
                     break;
                 }
             }
             _i += 1;
         }
-        
+
+        if !detected {
+            return Err(0usize);
+        }
         let entry_num = (symbol_table.sh_size as usize)/(symbol_table.sh_entsize as usize);
         let _entry_size = symbol_table.sh_entsize as usize;
 
@@ -259,6 +272,7 @@ impl RelaPLT {
     }
 
     pub fn print_rela_plt(&self) {
+        kprintln!("Relocation section '.rela.plt' contains {} entries:", self.relas.len());
         let mut i = 0;
         kprintln!("Index   Offset           Info          type               sym     name + append");
         while i < self.relas.len() {

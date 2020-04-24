@@ -47,17 +47,23 @@ impl DynamicTable {
         DynamicTable::default()
     }
 
-    pub fn from(section_table: &SectionTable) -> Result<DynamicTable, Error> {
+    pub fn from(section_table: &SectionTable) -> Result<DynamicTable, usize> {
 
         let mut dynamic_table: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
+        let mut detected = false;
         for section in (&section_table.sections).iter() {
             if section.sh_type == SectionType::DYNAMIC { 
                 dynamic_table = section;
+                detected = true;
                 break;
             }
             _i += 1;
-        }        
+        }       
+        if !detected {
+            return Err(0usize);
+        }
+        
         let entry_size = dynamic_table.sh_entsize as usize;
         let entry_num = (dynamic_table.sh_size as usize)/(entry_size);
         
@@ -66,7 +72,6 @@ impl DynamicTable {
 
         let mut index = dynamic_table.sh_offset as usize;
         let end = index + (dynamic_table.sh_size as usize);
-        kprintln!("Yeet");
         while index < end {
             raw_section_table.push((&raw)[index].clone());
             index += 1;

@@ -81,6 +81,7 @@ use fs::FileSystem;
 use process::GlobalScheduler;
 use traps::irq::Irq;
 use vm::VMManager;
+use crate::shell::shell;
 use elfparser::{ELF, SectionTable, SymbolTable, DynamicSymbolTable, GnuVersionReq, GnuVersion, RelaTable, RelaPLT, DynamicTable};
 #[cfg_attr(not(test), global_allocator)]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
@@ -95,7 +96,8 @@ fn kmain() -> ! {
         FILESYSTEM.initialize();
         IRQ.initialize();
         VMM.initialize();
-        demo_print_elf();
+        shell(">");
+        // demo_print_elf();
         // SCHEDULER.initialize();
         // SCHEDULER.start();
         // remember to change header::read_file back

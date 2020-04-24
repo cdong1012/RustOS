@@ -35,8 +35,8 @@ impl RawELFFile {
         let entry = FILESYSTEM.open(dir.as_path());
 
         if entry.is_err() {
-            kprintln!("Can't open file at path: {:?}", dir.to_str());
-            panic!("Can't open file");
+            kprintln!("Can't open file at path: {:?}", dir.to_str().unwrap());
+            return 0;
         }
         let entry = entry.unwrap();
         let mut buffer = [0u8; 2500000usize];                              // change this to something huge
@@ -50,7 +50,7 @@ impl RawELFFile {
                 },
                 Err(error)=> {
                     kprintln!("Can't read file {:?}", error);
-                    panic!("Can't read");
+                    return 0;
                 }
             };
             file_length = length;
@@ -109,9 +109,12 @@ impl ELFHeader {
     /*
     * From the raw elf file into elf header
     */
-    pub fn from(elf: &RawELFFile) -> Result<ELFHeader, Error> {
+    pub fn from(elf: &RawELFFile) -> Result<ELFHeader, usize> {
         let mut header = [0u8; 64];
         let raw = elf.as_slice();
+        if raw.len() < 64 {
+            return Err(0usize);
+        }
         header.copy_from_slice(&raw[..64]);
 
         // can use core::mem::transmute here, but there are some undefined behavior + its unsafe
@@ -351,8 +354,13 @@ impl ProgHeader32 {
     // Index is header table index
     // #Panic 
     // panic if index >= RawELFFile.ephnum
-    pub fn from(elf: &RawELFFile, index: usize) -> Result<ProgHeader32, Error> {
-        let elfheader = ELFHeader::from(elf).unwrap();
+    pub fn from(elf: &RawELFFile, index: usize) -> Result<ProgHeader32, usize> {
+        let elfheader = match ELFHeader::from(elf) {
+            Ok(header) => {header},
+            Err(_) => {
+                return Err(0usize);
+            }
+        };
 
         let start = elfheader.e_phoff as usize + index * size_of::<ProgHeader32>();
         let raw = elf.as_slice();
@@ -487,8 +495,13 @@ impl ProgHeader64 {
     // Index is the header table index.
     // #Panic
     // panic if index >= RawELFFile.e_phnum
-    pub fn from(elf: &RawELFFile, index: usize) -> Result<ProgHeader64, Error> {
-        let elfheader = ELFHeader::from(elf).unwrap();
+    pub fn from(elf: &RawELFFile, index: usize) -> Result<ProgHeader64, usize> {
+        let elfheader = match ELFHeader::from(elf) {
+            Ok(header) => {header},
+            Err(_) => {
+                return Err(0usize);
+            }
+        };
 
         let start = elfheader.e_phoff as usize + index * size_of::<ProgHeader64>();
         let raw = elf.as_slice();

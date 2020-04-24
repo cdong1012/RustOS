@@ -19,17 +19,33 @@ impl ELF {
     }
     
     // Caller ensures to call new before initialize
-    pub fn initialize<P: AsRef<Path>>(&mut self, path: P) {
-        self.raw.read_file(path);
-        self.header = ELFHeader::from(&self.raw).unwrap();
+    pub fn initialize<P: AsRef<Path>>(&mut self, path: P) -> bool {
+        match self.raw.read_file(path) {
+            0 => {
+                return false;
+            },
+            _ => {}
+        }
+        self.header = match ELFHeader::from(&self.raw) {
+            Ok(header) => header,
+            Err(_) => {
+                return false;
+            }
+        };
         
         let entry_num = self.header.e_phnum;
         let mut index = 0;
         while index < entry_num {
-            let program_header = ProgHeader64::from(&self.raw, index as usize).unwrap();
+            let program_header = match ProgHeader64::from(&self.raw, index as usize) {
+                Ok(prog_header) => prog_header,
+                Err(_) => {
+                    return false;
+                }
+            };
             self.header_table.push(program_header);
             index += 1;
         }
+        true
     } 
 
     // Print this elf files

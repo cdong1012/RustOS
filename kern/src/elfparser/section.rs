@@ -29,9 +29,14 @@ impl SectionEntry64 {
 
     // From the raw elf files into a section entry
     // Index = index of section entry in the section table
-    pub fn from(elf: &RawELFFile, index: usize) -> Result<SectionEntry64, Error> {
-        let elfheader = ELFHeader::from(elf).unwrap();
-
+    pub fn from(elf: &RawELFFile, index: usize) -> Result<SectionEntry64, usize> {
+        let elfheader = match ELFHeader::from(elf) {
+            Ok(header) => {header},
+            Err(_) => {
+                return Err(0usize);
+            }
+        };
+        
         let start = elfheader.e_shoff as usize + index * size_of::<SectionEntry64>();
         let raw = elf.as_slice();
         let mut buffer = [0u8; size_of::<SectionEntry64>()];
@@ -117,8 +122,13 @@ impl SectionTable {
     }
 
     // from raw elf file into section table
-    pub fn from(elf: &RawELFFile) -> Result<SectionTable, Error> {
-        let elfheader = ELFHeader::from(elf).unwrap();
+    pub fn from(elf: &RawELFFile) -> Result<SectionTable, usize> {
+        let elfheader = match ELFHeader::from(elf) {
+            Ok(header) => {header},
+            Err(_) => {
+                return Err(0usize);
+            }
+        };
         let string_table_index = elfheader.e_shstrndx;
         let section_entry_num = elfheader.e_shnum;
         let mut section_table = Vec::new();
