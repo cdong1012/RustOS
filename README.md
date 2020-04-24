@@ -1,16 +1,67 @@
-# RustOS - ELF Parser
+# RustOS - ELF Parser Write up
 
-## Author: Chuong Dong
+## Author: Chuong Dong - Group 21
 
-1. **Motivation**
-  - During lab 4, we can only load the raw bin file into memory to execute it, but the build.sh script also gives us elf files. Mansour suggested that I should try and write an elf parser to parse elf files for our OS, and make it executable!
-  - It's a good chance for me to explore ELF files and understanding its raw components since the knowledge will be helpful for RE ctf problems!
-2. **Steps**
-  - First, I read up about ELF, and I spent most of my time on Wikipedia trying to understand how everything falls into each other. I found this super clutch image on Wikipedia that explains it really well.
-  ![alt text](https://upload.wikimedia.org/wikipedia/commons/e/e4/ELF_Executable_and_Linkable_Format_diagram_by_Ange_Albertini.png)
-  
-  - Basically, the first 64 bytes of ELF file is called the ELF header
-     - *ELF header*:
-        - Store data specifying the structure of the whole ELF
-        - Has to offset of the file header table and section header table
-  - After parse the ELF header, I use 
+1. **Proposal**
+  - During lab 4, we can only load the raw bin file into memory to execute it, but the build.sh script also gives us elf files. In a real world scenario, we should be able to execute elf files instead of just bin files in order to accommodate dynamic linking and other stuff. 
+  - On linux, there is a really interesting and useful elf parser called ***readelf*** that can parse different types of elf files, so I thought it would be a fun idea to explore and create my own elf parser for our RustOS.
+  - Even though the files are specified to be built without dynamic linking, I still wanted to try and parse the dynamic sections of the ELF file(similar to ldd or readelf -d on Linux).
+  - After finishing the parser, I should be able to
+    1. Parse fib.elf and sleep.elf, extract their binary code, load it into user virtual memory and execute it normally like with the bin files
+    2. Parse any elf files with dynamic linking enable. For this, I have compiled a simple Rust program that dynamically links with some libc files on my machine in order to test my parser.
+
+2. **Layout**
+  - Everything is located in ***/kern/elfparser***
+    1. *elf.rs*
+      - This file stores the most generable structure of an elf file.
+      - In my ELF struct, I have a raw elf file in a byte array, the elf header, and the header table
+      - ELF struct has the binary() function to extract the actual binary code used to execute(basically the content of the bin file). We can use this function to load the binary into virtual memory
+    2. *header.rs*
+      - All the things we need to parse a file and execute it(without dynamic linking)
+      - There are 3 types of struct here:
+        - **RawELFFile**: contains a vector of u8. Basically a wrapper for the elf file itself.
+        - **ELFHeader**: A struct parsed from the first 64 bytes of the file. Store metadata and points us to where we can get the program header table and section table
+        - **ProgHeader64** for 64-bit architecture or **ProgHeader32** for 32-bit architecture: The program header. An entry in the program header table. Each entry corresponds to a segment in the file.
+    3. *section.rs*
+      - Section header lists the set of sections of the binary.
+      - There are 2 types of struct here:
+        - **SectionEntry64**: a section header entry. Each represents and contains a pointer to a section in memory.
+        - **SectionTable**: the section header table. Contains a number of SectionEntry64.
+    4. *symbol.rs* - 
+      - The symbols that are used in the ELF files.
+      - There are 3 types of struct here:
+        - **Symbol64**: a symbol. Contains info about a symbol like name and value
+        - **SymbolTable**: the symbol table, .symtab section. Contains a number of Symbol64s. 
+        - **DynamicSymbolTable**: the dynamic symbol table, .dyn.sym section. Contains a number of Symbol64s that are dynamically linked. Can be used by the dynamic linker(if we ever have one...) to identify the symbols defined and referenced in a module.
+    5. *relocation.rs*
+      - Specifies the ELF file relocation. Can be used by the dynamic linker if we ever have one...
+      - There are 3 types of struct here:
+        - **Rela64**: Elf64_Rela in Linux. An entry in relocation tables.
+        - **RelaTable**: Relocation table, .rela.dyn section. Stores a number of Rela64s. 
+        - **RelaPLT**: Procedure linkage table, .rela.plt section. Used to call external procedures/functions. 
+    6. *dynamic.rs*
+      - Finds the NEEDED entries determining which libraries have to be loaded before the program can be run
+      - There are 2 types of struct here:
+        - **Dyn64**: Elf64_Dyn in Linux. An entry in the dynamic section.
+        - **DynamicTable**: dynamic table, .dynamic section. Contains Dyn64s. The Dyn64 entries with type NEEDED contains the file name of the libraries that this executable depends on.
+    7. *version.rs*
+      - Specifies the version of the symbols this ELF uses.
+      - There are 4 types of struct here:
+        - **Verneed64**: Elf64_Verneed in Linux. An entry in the version requirement table
+        - **GnuVersionReq**: the version requirement table, .gnu.version_r section. Contains required symbol version definitions
+        - **Version64**: Elf64_Half in linux. Basically a small entry of 2 bytes in the symbol version table
+        - **GnuVersion**: The symbol version table, .gnu.version section. This should have the same number of entries as the Dynamic Symbol Table. Each entry in this represents the version of that in the Dynamic Symbol Table.
+    8. *values.rs*
+      - This file stores the constant value for all of the above structs types, flags,...
+      - Since each of these has a bunch of different values varied throughout machine, architecture, etc, it took me way too long to look for documentations from Linux and other sources to collect them. 
+      - These modules should be used when parsing and printing the sections instead of their actual values. If this project ends up getting expand(maybe into a dynamic linker), this file will help tremendously in localizing these ELF values into one spot.
+
+3. **How to run**
+  - In ***/user/build.sh***, change the last for loop to this to load the elf files into sd card instead of the bin files
+    ```
+      for d in ${PROGS[@]}; do
+        #sudo cp $d/build/$d.bin $MNT/$d
+        sudo cp $d/build/$d.elf $MNT/$d
+      done 
+    ```
+  - 

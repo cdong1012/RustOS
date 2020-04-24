@@ -185,7 +185,7 @@ pub fn shell(prefix: &str) {
                                 let rela_table = match RelaTable::from(&section_table) {
                                     Ok(rela_table) => rela_table,
                                     Err(_) => {
-                                        kprintln!("Can't find realocation table");
+                                        kprintln!("Can't find relocation table");
                                         break 'line;
                                     }
                                 };
