@@ -78,6 +78,7 @@
         }
         loop {}
       }
+      
     ```
     - This demo will attempt to execute the fib.elf file! Check out my process.rs if you want to see how I load the elf file into memory!
   2. To run the second demo, please execute this kmain
@@ -100,6 +101,7 @@
   - I have tried to modify and copy the spacing for Linux readelf, but my code is still not perfect... It stills parses the file correctly, so I think I'll settle with it!
   - Follow this command info to execute ***readelf***
     ```
+    
       Usage: readelf <option(s)> elf-file(s)
       Display information about the contents of ELF format files
       Options are:
