@@ -83,7 +83,7 @@
       }
     ```
     
-    - This demo will attempt to execute the fib.elf file! Check out my process.rs if you want to see how I load the elf file into memory!
+   - This demo will attempt to execute the fib.elf file! Check out my process.rs if you want to see how I load the elf file into memory!
   2. To run the second demo, please execute this kmain
     
     ```
@@ -100,7 +100,7 @@
       }
     ```
     
-    - In this demo, please try using my readelf command in my shell on all the elf files we have in the SD card.
+   - In this demo, please try using my readelf command in my shell on all the elf files we have in the SD card.
 
 ### **4. readelf**
   - I have tried to modify and copy the spacing for Linux readelf, but my code is still not perfect... It stills parses the file correctly, so I think I'll settle with it!
