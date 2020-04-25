@@ -97,41 +97,9 @@ fn kmain() -> ! {
         IRQ.initialize();
         VMM.initialize();
         shell(">");
-        // demo_print_elf();
+
         // SCHEDULER.initialize();
         // SCHEDULER.start();
-        // remember to change header::read_file back
     }
     loop {}
-}
-
-fn demo_print_elf() {
-    let mut elf = ELF::new();
-    elf.initialize(Path::new("real"));
-    // elf.print_elf();
-
-    let section_table = SectionTable::from(&elf.raw).unwrap();
-    let dyn_table = DynamicTable::from(&section_table).unwrap();
-    dyn_table.print_dyn_table();
-    // section_table.print_section_table();
-    // let rela_table = RelaTable::from(&section_table).unwrap();
-    // let rela_plt = RelaPLT::from(&section_table).unwrap();
-    //rela_plt.print_rela_plt();
-    //rela_table.print_rela_table();
-    // let ver_req = GnuVersionReq::from(&section_table).unwrap();
-    // let buffer = ver_req.get_dependency_string();
-    // for each in buffer.iter() {
-    //     kprintln!("{:?}", core::str::from_utf8(&each).unwrap());
-    // }
-    // ver_req.print_version_req();
-    
-    // let gnu_ver = GnuVersion::from(&section_table).unwrap();
-
-    // let dyn_sym = DynamicSymbolTable::from(&section_table).unwrap();
-    // let sym = SymbolTable::from(&section_table).unwrap();
-
-    // sym.print_symbol_table();
-    //dyn_sym.print_dynamic_symbol_table();
-    // gnu_ver.print_gnu_version();
-
 }

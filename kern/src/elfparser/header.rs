@@ -60,6 +60,42 @@ impl RawELFFile {
         }
         file_length
     }
+
+    // This function is only for demo-ing the fact that I can get the elf file to execute in my first demo.
+    // Use read_file for any other case. If I use read_file instead of this for the process, the buffer of 
+    // 2500000 cause an error periodically when I run it... Not stable at all. But there is virtually no difference between the two
+    pub fn read_file_to_execute<P: AsRef<Path>>(&mut self, path: P) -> usize {
+        let mut working_dir = PathBuf::from("/");
+        let mut dir = working_dir.clone();
+        dir.push(path);
+        let entry = FILESYSTEM.open(dir.as_path());
+
+        if entry.is_err() {
+            kprintln!("Can't open file at path: {:?}", dir.to_str().unwrap());
+            return 0;
+        }
+        let entry = entry.unwrap();
+        let mut buffer = [0u8; 80000usize];                              // change this to something huge
+        let mut file_length : usize = 0usize;
+
+        if let Some(mut file) = entry.into_file() {                 
+            use shim::io::Read;
+            let length = match file.read(&mut buffer) {                 // read the file into the buffer
+                Ok(length) => {
+                    length
+                },
+                Err(error)=> {
+                    kprintln!("Can't read file {:?}", error);
+                    return 0;
+                }
+            };
+            file_length = length;
+        }
+        for byte in buffer[..file_length].iter() {                  // iterate through buffer, read it in vec
+            self.raw.push(byte.clone());
+        }
+        file_length
+    }
 }
 
 impl Deref for RawELFFile {

@@ -118,7 +118,7 @@ impl Process {
     // Load ELF, use this instead of do_load if we are working with elf files
     pub fn load_elf<P: AsRef<Path>>(pn: P) -> OsResult<Process> {
         let mut elf = ELF::new();
-        elf.initialize(pn);
+        elf.initialize_to_execute(pn);
         
         // Extract binary code into a u8 array
         let binary = elf.binary();

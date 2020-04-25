@@ -48,6 +48,35 @@ impl ELF {
         true
     } 
 
+    pub fn initialize_to_execute<P: AsRef<Path>>(&mut self, path: P) -> bool {
+        match self.raw.read_file_to_execute(path) {
+            0 => {
+                return false;
+            },
+            _ => {}
+        }
+        self.header = match ELFHeader::from(&self.raw) {
+            Ok(header) => header,
+            Err(_) => {
+                return false;
+            }
+        };
+        
+        let entry_num = self.header.e_phnum;
+        let mut index = 0;
+        while index < entry_num {
+            let program_header = match ProgHeader64::from(&self.raw, index as usize) {
+                Ok(prog_header) => prog_header,
+                Err(_) => {
+                    return false;
+                }
+            };
+            self.header_table.push(program_header);
+            index += 1;
+        }
+        true
+    }
+
     // Print this elf files
     // Print the file header and then the program header table
     pub fn print_elf(&self) {
