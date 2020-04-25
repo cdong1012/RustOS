@@ -2,7 +2,7 @@
 
 ## Author: Chuong Dong - Group 21
 
-1. **Proposal**
+### **1. Proposal**
   - During lab 4, we can only load the raw bin file into memory to execute it, but the build.sh script also gives us elf files. In a real world scenario, we should be able to execute elf files instead of just bin files in order to accommodate dynamic linking and other stuff. 
   - On linux, there is a really interesting and useful elf parser called ***readelf*** that can parse different types of elf files, so I thought it would be a fun idea to explore and create my own elf parser for our RustOS.
   - Even though the files are specified to be built without dynamic linking, I still wanted to try and parse the dynamic sections of the ELF file(similar to ldd or readelf -d on Linux).
@@ -10,7 +10,7 @@
     1. Parse fib.elf and sleep.elf, extract their binary code, load it into user virtual memory and execute it normally like with the bin files
     2. Parse any elf files with dynamic linking enable. For this, I have compiled a simple Rust program that dynamically links with some libc files on my machine in order to test my parser.
 
-2. **Layout**
+### **2. Layout**
   - Everything is located in ***/kern/elfparser***
     1. ***elf.rs***
       - This file stores the most generable structure of an elf file.
@@ -56,7 +56,7 @@
       - Since each of these has a bunch of different values varied throughout machine, architecture, etc, it took me way too long to look for documentations from Linux and other sources to collect them. 
       - These modules should be used when parsing and printing the sections instead of their actual values. If this project ends up getting expand(maybe into a dynamic linker), this file will help tremendously in localizing these ELF values into one spot.
 
-3. **How to run**
+### **3. How to run**
   - In ***/user/build.sh***, to make sure I load the elf files into the sd card, I changed the last for loop to this to load the elf files into sd card instead of the bin files
     ```
       for d in ${PROGS[@]}; do
@@ -96,7 +96,7 @@
     ```
     - In this demo, please try using my readelf command in my shell on all the elf files we have in the SD card.
 
-4. **readelf**
+### **4. readelf**
   - I have tried to modify and copy the spacing for Linux readelf, but my code is still not perfect... It stills parses the file correctly, so I think I'll settle with it!
   - Follow this command info to execute ***readelf***
     ```
@@ -114,9 +114,9 @@
     ```
   - I suggest testing most of these on the **real** file! It's the executable I compiled on my Linux machine!
 
-5. **Wrapping Up**
+**5. Wrapping Up**
   - I have been trying to look into if I can write a dynamic linker to get dynamic linking fully working in our machine, but getting our OS to even generate library code and dynamically link our executables with that was painfully complicated...
   - This is all I have! Most of the time I spend on this project was from reading how Linux implements their own readelf, and while seeing how people back then could come up with such a complicated format was amazing, I never want to go through this again... The Linux source code and also the documentations on ELF in general are not well-documented at all...
   - I'm glad I have been able to take this class! I would like to thank professor Kim and all of the TAs for making this class such a wonderful experience for us!
   - Also, huge shoutout specifically to Mansour for suggesting this topic! It was really eye-opening to break down and look into the ELF file's components, and it certainly has given me a new way to look at binary exploitation for ELF from now on!
-  
+
