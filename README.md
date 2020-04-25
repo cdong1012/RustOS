@@ -67,38 +67,36 @@
     ```
     
   1. To run the first demo, please execute this kmain
-    
-    ```
-      fn kmain() -> ! {
-        unsafe {
-            ALLOCATOR.initialize();
-            FILESYSTEM.initialize();
-            IRQ.initialize();
-            VMM.initialize();
+      ```
+        fn kmain() -> ! {
+          unsafe {
+              ALLOCATOR.initialize();
+              FILESYSTEM.initialize();
+              IRQ.initialize();
+              VMM.initialize();
 
-            SCHEDULER.initialize();
-            SCHEDULER.start();
+              SCHEDULER.initialize();
+              SCHEDULER.start();
+          }
+          loop {}
         }
-        loop {}
-      }
-    ```
+      ```
     
    - This demo will attempt to execute the fib.elf file! Check out my process.rs if you want to see how I load the elf file into memory!
   2. To run the second demo, please execute this kmain
-    
-    ```
-      fn kmain() -> ! {
-        unsafe {
-            ALLOCATOR.initialize();
-            FILESYSTEM.initialize();
-            IRQ.initialize();
-            VMM.initialize();
+      ```
+        fn kmain() -> ! {
+          unsafe {
+              ALLOCATOR.initialize();
+              FILESYSTEM.initialize();
+              IRQ.initialize();
+              VMM.initialize();
 
-            shell(">");
+              shell(">");
+          }
+          loop {}
         }
-        loop {}
-      }
-    ```
+      ```
     
    - In this demo, please try using my readelf command in my shell on all the elf files we have in the SD card.
 
