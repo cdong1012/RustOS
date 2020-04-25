@@ -122,7 +122,7 @@ pub fn shell(prefix: &str) {
                         } else if Command::path(&com) == "readelf" {
                             if com.args.len() != 3 {
                                 kprintln!("Invalid number of argument");
-                                kprintln!("Usage: readelf <option(s)> elf-file(s)");
+                                kprintln!("Usage: readelf <option> elf-file(s)");
                                 kprintln!(" Display information about the contents of ELF format files");
                                 kprintln!(" Options are:");
                                 kprintln!("  -h --file-header       Display the ELF file header");
@@ -229,7 +229,7 @@ pub fn shell(prefix: &str) {
                                 gnu_req.print_version_req();
                             } else {
                                 kprintln!("The flag you submitted is not supported");
-                                kprintln!("Usage: readelf <option(s)> elf-file(s)");
+                                kprintln!("Usage: readelf <option> elf-file(s)");
                                 kprintln!(" Display information about the contents of ELF format files");
                                 kprintln!(" Options are:");
                                 kprintln!("  -h --file-header       Display the ELF file header");

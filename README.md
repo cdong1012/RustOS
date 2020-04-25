@@ -107,7 +107,7 @@
   - Follow this command info to execute ***readelf***
   
     ```
-      Usage: readelf <option(s)> elf-file(s)
+      Usage: readelf <option> elf-file(s)
       Display information about the contents of ELF format files
       Options are:
         -h --file-header       Display the ELF file header
