@@ -131,6 +131,6 @@
 **5. Wrapping Up**
   - I have been trying to look into if I can write a dynamic linker to get dynamic linking fully working in our machine, but getting our OS to even generate library code and dynamically link our executables with that was painfully complicated...
   - This is all I have! Most of the time I spend on this project was from reading how Linux implements their own readelf, and while seeing how people back then could come up with such a complicated format was amazing, I never want to go through this again... The Linux source code and also the documentations on ELF in general are not well-documented at all...
-  - I'm glad I have been able to take this class! I would like to thank professor Kim and all of the TAs for making this class such a wonderful experience for us!
+  - I'm glad I have been able to take this class and finally say I have survived it!!! I would like to thank professor Kim and all of the TAs for making this class such a wonderful experience for all of us!
   - Also, huge shoutout specifically to Mansour for suggesting this topic! It was really eye-opening to break down and look into the ELF file's components, and it certainly has given me a new way to look at binary exploitation for ELF from now on!
 
