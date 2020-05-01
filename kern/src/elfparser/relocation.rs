@@ -9,6 +9,7 @@ use crate::elfparser::symbol::{DynamicSymbolTable};
 use crate::alloc::string::ToString;
 // https://www.ucw.cz/~hubicka/papers/abi/node19.html
 
+//https://docs.oracle.com/cd/E19683-01/816-1386/chapter6-54839/index.html
 #[derive(Debug, Default, Clone)]
 pub struct Rela64 {
     pub r_offset: u64, 
@@ -17,14 +18,6 @@ pub struct Rela64 {
 }
 
 const_assert_size!(Rela64, 24);
-
-pub struct Rel64 {
-    pub r_offset: u64,
-    pub r_info: u64,    
-}
-
-const_assert_size!(Rel64, 16);
-
 
 impl Rela64 {
     pub fn new() -> Rela64 {
@@ -51,7 +44,7 @@ impl Rela64 {
         new_rela
     }
 
-    // Get the bind value from st_info
+    // Get the sym value from st_info
     pub fn get_sym(&self) -> u64 {
         self.r_info >> 32
     }
@@ -69,8 +62,6 @@ pub struct RelaTable {
     pub rela_string_table: Vec<Vec<u8>>
 }
 
-
-
 // .rela.dyn
 impl RelaTable {
     pub fn new() -> RelaTable {
@@ -82,7 +73,7 @@ impl RelaTable {
         let mut _i = 0;
         let mut detected = false;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == SectionType::RELA { // dynamic symbol table type == 0xB
+            if section.sh_type == SectionType::RELA {
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".rela.dyn" {
                     symbol_table = section;
@@ -109,8 +100,7 @@ impl RelaTable {
             raw_section_table.push((&raw)[index].clone());
             index += 1;
         }
-        
-        //let mut new_symbol_table = DynamicSymbolTable::new();
+
         let mut new_rela_table = RelaTable::new();
 
         let mut start = 0usize;
@@ -225,7 +215,7 @@ impl RelaPLT {
         let mut _i = 0;
         let mut detected = false;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == SectionType::RELA { // dynamic symbol table type == 0xB
+            if section.sh_type == SectionType::RELA { 
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".rela.plt" {
                     symbol_table = section;
@@ -252,7 +242,6 @@ impl RelaPLT {
             index += 1;
         }
         
-        //let mut new_symbol_table = DynamicSymbolTable::new();
         let mut new_rela_plt = RelaPLT::new();
 
         let mut start = 0usize;

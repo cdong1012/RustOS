@@ -4,7 +4,7 @@ use core::fmt::Error;
 use alloc::vec::Vec;
 use crate::console::{kprintln, kprint};
 use crate::elfparser::section::{SectionTable, SectionEntry64};
-
+use crate::elfparser::values::*;
 #[derive(Debug, Default, Clone)]
 pub struct Verneed64 {
     pub version: u16,  // Version of structure. This value is currently set to 1, and will be reset if the versioning implementation is incompatibly altered.
@@ -59,7 +59,7 @@ impl GnuVersionReq {
         let mut _i = 0;
         let mut detected = false;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == 0x6ffffffe { // symbol table type == 0x2
+            if section.sh_type == SectionType::VERNEED { // symbol table type == 0x2
                 version_req = section;
                 detected = true;
                 break;
@@ -91,7 +91,7 @@ impl GnuVersionReq {
         let mut dynamic_string_table = &SectionEntry64::new();
 
         for section in section_table.sections.iter() {
-            if section.sh_type == 0x3 {
+            if section.sh_type == SectionType::STRTAB {
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".dynstr" {
                     dynamic_string_table = section;
@@ -229,11 +229,10 @@ impl GnuVersion {
     pub fn from(section_table: &SectionTable) -> Result<GnuVersion, usize> {
 
         let mut gnu_version_table: &SectionEntry64 = &SectionEntry64::new();
-        //let mut version_req: &SectionEntry64 = &SectionEntry64::new();
         let mut _i = 0;
         let mut detected = false;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == 0x6fffffff { // VERSYM type == 0x6fffffff
+            if section.sh_type == SectionType::VERSYM {
                 gnu_version_table = section;
                 detected = true;
                 break;

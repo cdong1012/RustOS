@@ -154,8 +154,6 @@ impl ELFHeader {
         header.copy_from_slice(&raw[..64]);
 
         // can use core::mem::transmute here, but there are some undefined behavior + its unsafe
-        // anyone who wanna try it out, feel free to!
-        // I'm just gon do it manually.. D:
         let mut elfheader = ELFHeader::new();
         elfheader.ei_mag.copy_from_slice(&raw[..4]);
         elfheader.ei_class = raw[4].clone();
@@ -169,7 +167,7 @@ impl ELFHeader {
             1 => true,
             2 => false,
             _ => {
-                panic!("EI_DATA not valid");
+                return Err(0usize);
             }
         };
         elfheader.e_type = match is_little {
@@ -366,145 +364,6 @@ impl ELFHeader {
 }
 
 
-// This is program header for ELF32
-// probably not gonna be used for our OS, but oh well, wouldn't hurt to be able to read different kind of ELF files :D
-#[derive(Debug, Default)]
-pub struct ProgHeader32 {
-    pub p_type: u32,
-    pub p_offset: u32,
-    pub p_vaddr: u32,
-    pub p_paddr: u32,
-    pub p_filesz: u32,
-    pub p_memsz: u32,
-    pub p_flags: u32,
-    pub p_align: u32,
-}
-const_assert_size!(ProgHeader32, 32); // Program header of ELF32 is 32 bits
-
-impl ProgHeader32 {
-    pub fn new() -> ProgHeader32 {
-        ProgHeader32::default()
-    }
-    
-    //Parser Program header from ELF file
-    // Index is header table index
-    // #Panic 
-    // panic if index >= RawELFFile.ephnum
-    pub fn from(elf: &RawELFFile, index: usize) -> Result<ProgHeader32, usize> {
-        let elfheader = match ELFHeader::from(elf) {
-            Ok(header) => {header},
-            Err(_) => {
-                return Err(0usize);
-            }
-        };
-
-        let start = elfheader.e_phoff as usize + index * size_of::<ProgHeader32>();
-        let raw = elf.as_slice();
-        let mut buffer = [0u8; size_of::<ProgHeader32>()];
-        buffer.copy_from_slice(&raw[start..(start + size_of::<ProgHeader32>())]);
-
-        // buffer now has the program header in it
-        // Parsing
-
-        let mut program_header = ProgHeader32::new();
-        let is_little = match elfheader.ei_data {
-            1 => true,
-            2 => false,
-            _ => {
-                panic!("EI_DATA not valid");
-            }
-        };
-
-        program_header.p_type = match is_little {
-            true => u32::from_le_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]),
-            false => u32::from_be_bytes([buffer[0], buffer[1], buffer[2], buffer[3]]),
-        };
-
-        program_header.p_offset = match is_little {
-            true => u32::from_le_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
-            false => u32::from_be_bytes([buffer[4], buffer[5], buffer[6], buffer[7]]),
-        };
-
-        program_header.p_vaddr = match is_little {
-            true => u32::from_le_bytes([buffer[8], buffer[9], buffer[10], buffer[11]]),
-            false => u32::from_be_bytes([buffer[8], buffer[9], buffer[10], buffer[11]]),
-        };
-
-        program_header.p_paddr = match is_little {
-            true => u32::from_le_bytes([buffer[12], buffer[13], buffer[14], buffer[15]]),
-            false => u32::from_be_bytes([buffer[12], buffer[13], buffer[14], buffer[15]]),
-        };
-
-
-        program_header.p_filesz = match is_little {
-            true => u32::from_le_bytes([buffer[16], buffer[17], buffer[18], buffer[19]]),
-            false => u32::from_be_bytes([buffer[16], buffer[17], buffer[18], buffer[19]]),
-        };
-
-        program_header.p_memsz = match is_little {
-            true => u32::from_le_bytes([buffer[20], buffer[21], buffer[22], buffer[23]]),
-            false => u32::from_be_bytes([buffer[20], buffer[21], buffer[22], buffer[23]]),
-        };
-
-        program_header.p_flags = match is_little {
-            true => u32::from_le_bytes([buffer[24], buffer[25], buffer[26], buffer[27]]),
-            false => u32::from_be_bytes([buffer[24], buffer[25], buffer[26], buffer[27]]),
-        };
-
-        program_header.p_align = match is_little {
-            true => u32::from_le_bytes([buffer[28], buffer[29], buffer[30], buffer[31]]),
-            false => u32::from_be_bytes([buffer[28], buffer[29], buffer[30], buffer[31]]),
-        };
-
-        Ok(program_header)
-    }
-
-    pub fn print_header(&self) {
-        kprintln!("Program Header:");
-        kprint!("   Type:                    ");
-        match self.p_type {
-            ProgHeaderMachine::NULL         => {kprint!("NULL");},	
-            ProgHeaderMachine::LOAD         => {kprint!("LOAD");},	
-            ProgHeaderMachine::DYNAMIC      => {kprint!("DYNAMIC");},	
-            ProgHeaderMachine::INTERP       => {kprint!("INTERP");},	
-            ProgHeaderMachine::NOTE         => {kprint!("NOTE");},	
-            ProgHeaderMachine::SHLIB        => {kprint!("SHLIB");},
-            ProgHeaderMachine::PHDR         => {kprint!("PHDR");},	
-            ProgHeaderMachine::TLS          => {kprint!("TLS");},	
-            ProgHeaderMachine::LOOS         => {kprint!("LOOS");},	
-            ProgHeaderMachine::HIOS         => {kprint!("HIOS");},
-            ProgHeaderMachine::LOPROC       => {kprint!("LOPROC");},
-            ProgHeaderMachine::HIPROC       => {kprint!("HIPROC");},
-            ProgHeaderMachine::GNU_STACK    => {kprint!("GNU_STACK");},
-            ProgHeaderMachine::GNU_EH_FRAME => {kprint!("GNU_EH_FRAME");},
-            ProgHeaderMachine::GNU_RELRO    => {kprint!("GNU_RELRO");},
-            _                               => {kprint!("Can't detect type 0x{:x}", self.p_type);}
-        }
-        kprintln!("");
-
-        kprint!("   Flags:                   ");
-        match self.p_flags {
-            0 => {},
-            1 => {kprint!("  X");},
-            2 => {kprint!(" W");},
-            3 => {kprint!(" WX");},
-            4 => {kprint!("R");},
-            5 => {kprint!("R X");},
-            6 => {kprint!("RW");},
-            7 => {kprint!("RWX");},
-            _ => {kprint!("Can't detect flag");}
-        }
-        kprintln!("");
-
-        kprintln!("   Offset:                  0x{:x}", self.p_offset);
-        kprintln!("   Virtual address:         0x{:x}", self.p_vaddr);
-        kprintln!("   Physical address:        0x{:x}", self.p_paddr);
-        kprintln!("   File size:               0x{:x}", self.p_filesz);
-        kprintln!("   Memory size:             0x{:x}", self.p_memsz);
-        kprintln!("   Align:                   0x{:x}", self.p_align);
-    }
-}
-
 // This is program header for ELF64
 // We'll be mainly using this.
 // Note: view p_flags here https://docs.oracle.com/cd/E19683-01/816-1386/6m7qcoblk/index.html#chapter6-tbl-39
@@ -604,21 +463,21 @@ impl ProgHeader64 {
         kprintln!("Program Header:");
         kprint!("   Type:                    ");
         match self.p_type {
-            ProgHeaderMachine::NULL         => {kprint!("NULL");},	
-            ProgHeaderMachine::LOAD         => {kprint!("LOAD");},	
-            ProgHeaderMachine::DYNAMIC      => {kprint!("DYNAMIC");},	
-            ProgHeaderMachine::INTERP       => {kprint!("INTERP");},	
-            ProgHeaderMachine::NOTE         => {kprint!("NOTE");},	
-            ProgHeaderMachine::SHLIB        => {kprint!("SHLIB");},
-            ProgHeaderMachine::PHDR         => {kprint!("PHDR");},	
-            ProgHeaderMachine::TLS          => {kprint!("TLS");},	
-            ProgHeaderMachine::LOOS         => {kprint!("LOOS");},	
-            ProgHeaderMachine::HIOS         => {kprint!("HIOS");},
-            ProgHeaderMachine::LOPROC       => {kprint!("LOPROC");},
-            ProgHeaderMachine::HIPROC       => {kprint!("HIPROC");},
-            ProgHeaderMachine::GNU_STACK    => {kprint!("GNU_STACK");},
-            ProgHeaderMachine::GNU_EH_FRAME => {kprint!("GNU_EH_FRAME");},
-            ProgHeaderMachine::GNU_RELRO    => {kprint!("GNU_RELRO");},
+            ProgHeaderType::NULL         => {kprint!("NULL");},	
+            ProgHeaderType::LOAD         => {kprint!("LOAD");},	
+            ProgHeaderType::DYNAMIC      => {kprint!("DYNAMIC");},	
+            ProgHeaderType::INTERP       => {kprint!("INTERP");},	
+            ProgHeaderType::NOTE         => {kprint!("NOTE");},	
+            ProgHeaderType::SHLIB        => {kprint!("SHLIB");},
+            ProgHeaderType::PHDR         => {kprint!("PHDR");},	
+            ProgHeaderType::TLS          => {kprint!("TLS");},	
+            ProgHeaderType::LOOS         => {kprint!("LOOS");},	
+            ProgHeaderType::HIOS         => {kprint!("HIOS");},
+            ProgHeaderType::LOPROC       => {kprint!("LOPROC");},
+            ProgHeaderType::HIPROC       => {kprint!("HIPROC");},
+            ProgHeaderType::GNU_STACK    => {kprint!("GNU_STACK");},
+            ProgHeaderType::GNU_EH_FRAME => {kprint!("GNU_EH_FRAME");},
+            ProgHeaderType::GNU_RELRO    => {kprint!("GNU_RELRO");},
             _                               => {kprint!("Can't detect type");}
         }
         kprintln!("");

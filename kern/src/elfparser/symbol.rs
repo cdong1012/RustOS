@@ -86,7 +86,7 @@ impl SymbolTable {
         let mut _i = 0;
         let mut detected = false;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == 0x2 { // symbol table type == 0x2
+            if section.sh_type == SectionType::SYMTAB { // symbol table type == 0x2
                 symbol_table = section;
                 detected = true;
                 break;
@@ -121,7 +121,7 @@ impl SymbolTable {
         let mut symbol_string_table = &SectionEntry64::new();
 
         for section in section_table.sections.iter() {
-            if section.sh_type == 0x3 {
+            if section.sh_type == SectionType::STRTAB {
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".strtab" {
                     symbol_string_table = section;
@@ -248,7 +248,7 @@ impl DynamicSymbolTable {
         let mut _i = 0;
         let mut detected = false;
         for section in (&section_table.sections).iter() {
-            if section.sh_type == 0xB { // dynamic symbol table type == 0xB
+            if section.sh_type == SectionType::DYNSYM { // dynamic symbol table type == 0xB
                 symbol_table = section;
                 detected = true;
                 break;
@@ -283,7 +283,7 @@ impl DynamicSymbolTable {
         let mut symbol_string_table = &SectionEntry64::new();
 
         for section in section_table.sections.iter() {
-            if section.sh_type == 0x3 {
+            if section.sh_type == SectionType::STRTAB {
                 let name = section_table.get_name(section.sh_name);
                 if core::str::from_utf8(&name).unwrap() == ".dynstr" {
                     symbol_string_table = section;
@@ -395,7 +395,6 @@ impl DynamicSymbolTable {
         let mut i = 0;
         while i < self.dynamic_symbols.len() {
             let symbol = (&self.dynamic_symbols)[i].clone();
-
             let mut name = self.get_name(symbol.st_name);
             let name_version = &self.get_name_version(i);
             if name_version.len() > 0 {

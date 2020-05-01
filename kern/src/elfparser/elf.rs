@@ -2,6 +2,7 @@ use alloc::vec::Vec;
 use crate::elfparser::header::{ProgHeader64, ELFHeader, RawELFFile};
 use shim::path::{Path};
 use crate::console::{kprintln, kprint};
+use crate::elfparser::values::*;
 // struct for ELF64
 pub struct ELF {
     pub raw: RawELFFile,
@@ -102,7 +103,7 @@ impl ELF {
     pub fn binary(&self) -> Vec<u8> {
         let mut header_table_entry: &ProgHeader64 = &ProgHeader64::new();
         for entry in self.header_table.iter() {
-            if entry.p_type == 0x00000001 {
+            if entry.p_type == ProgHeaderType::LOAD { // 	PT_LOAD
                 header_table_entry = entry;
                 break;
             }

@@ -69,7 +69,7 @@ pub mod FileHeaderMachine {
 
 #[allow(non_snake_case)]
 #[allow(non_upper_case_globals)]
-pub mod ProgHeaderMachine {
+pub mod ProgHeaderType {
     pub const NULL: u32 = 0x0;
     pub const LOAD: u32 = 0x1;
     pub const DYNAMIC: u32 = 0x2;

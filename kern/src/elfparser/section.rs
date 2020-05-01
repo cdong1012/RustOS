@@ -49,7 +49,7 @@ impl SectionEntry64 {
             1 => true,
             2 => false,
             _ => {
-                panic!("EI_DATA not valid");
+                return Err(0usize);
             }
         };
 
